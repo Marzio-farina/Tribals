@@ -1,6 +1,6 @@
 const { ipcRenderer } = require('electron');
 
-ipcRenderer.on('openQg', (event, data) => {
+ipcRenderer.once('openQg', (event, data) => {
     if (!data) {
         console.error("Errore: ricevuto 'openQg' senza dati validi.");
         return;
@@ -11,12 +11,14 @@ ipcRenderer.on('openQg', (event, data) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    setInterval(() => {
+    if (window.__updateInterval) {
+        clearInterval(window.__updateInterval);
+    }
+    window.__updateInterval = setInterval(() => {
         ipcRenderer.invoke('get-strutture')
             .then(listaCoda)
             .catch(error => console.error("Errore aggiornamento strutture:", error));
     }, 5000);
-
 });
 
 function listaCoda(livelliStrutture) {
@@ -26,8 +28,8 @@ function listaCoda(livelliStrutture) {
     const struttureInCoda = livelliStrutture.struttureInCoda || [];
     const struttureInCorso = livelliStrutture.struttureInCorso || {};
 
-    console.log("Strutture in coda:", struttureInCoda);
-    console.log("Altre strutture:", struttureInCorso);
+    // console.log("Strutture in coda:", struttureInCoda);
+    // console.log("Altre strutture:", struttureInCorso);
 
     containerInCoda.innerHTML = '';
     containerAttivi.innerHTML = '';
