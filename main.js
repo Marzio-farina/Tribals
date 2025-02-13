@@ -15,24 +15,24 @@ function initialize() {
     winSide = windows.winSide;
 
     winMain.webContents.once('did-finish-load', async () => {
-        try {
-            console.log("Inizio login...");
-            await login(winMain);
-            console.log("Login completato.");
-            
-            await loginMondo91(winMain);
-            console.log("Login Mondo 91 completato.");
-
-            // Fase 3: Cambia URL o naviga alla pagina desiderata
-            const villaggio = "4477";
-            const struttura = "main";
-            console.log("Arrivato al cambio di pagina...");
-            winMain.webContents.send('openQg', { villaggio, struttura });
-            console.log("Dovrebbe essere aperto.");
-
-        } catch (error) {
-            console.error("Errore durante il flusso:", error);
-        }
+        setTimeout(async () => {
+            try {
+                console.log("Inizio login...");
+                await login(winMain);
+                console.log("Login completato.");
+                
+                await loginMondo91(winMain);
+                console.log("Login Mondo 91 completato.");
+                
+                const villaggio = "4477";
+                const struttura = "main";
+                console.log("Arrivato al cambio di pagina...");
+                winMain.webContents.send('openQg', { villaggio, struttura });
+                console.log("Dovrebbe essere aperto.");
+            } catch (error) {
+                console.error("Errore durante il flusso:", error);
+            }
+        }, 3000);
     });
 }
 

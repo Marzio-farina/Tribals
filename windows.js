@@ -27,6 +27,11 @@ function createWindows() {
 
     winMain.webContents.once('did-fail-load', (event, errorCode, errorDescription) => {
         console.error(`Errore nel caricamento della finestra principale: ${errorDescription} (Codice errore: ${errorCode})`);
+        
+        setTimeout(() => {
+            console.log("Ricaricamento della finestra...");
+            winMain.reload();
+        }, 2000);
     });
 
     winMain.webContents.once('did-finish-load', () => {
