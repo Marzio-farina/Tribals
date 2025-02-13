@@ -4,12 +4,20 @@ function paginaStruttura(winMain, villaggio, struttura) {
         return;
     }
 
-    const url = `https://game.tribalwars.it/game.php?village=${villaggio}&screen=${struttura}`;
-    
-    console.log(`Cambio URL a: ${url}`);
-    winMain.webContents.executeJavaScript(`
-        window.location.href = "${url}";
-    `).catch(err => console.error("Errore durante il cambio pagina:", err));
+    const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
+
+    console.log(`DEBUG: Cambio pagina tra 2 secondi -> ${url}`);
+
+    setTimeout(() => {
+        winMain.webContents.executeJavaScript(`
+            console.log("DEBUG: Cambio URL a -> ${url}");
+            window.location.href = "${url}";
+        `).then(() => {
+            console.log("DEBUG: Cambio URL eseguito con successo.");
+        }).catch(err => {
+            console.error("Errore durante il cambio pagina:", err);
+        });
+    }, 2000);
 }
 
 module.exports = { paginaStruttura };
