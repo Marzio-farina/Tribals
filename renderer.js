@@ -82,3 +82,4 @@ function listaCoda(livelliStrutture) {
         console.log("Nessuna struttura in corso.");
     }    
 }
+

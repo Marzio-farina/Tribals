@@ -139,7 +139,9 @@ ipcMain.handle("get-strutture", async (event) => {
                         
                         buildQueueRows.forEach(row => {
                             let primoTd = row.querySelector('td:nth-child(1)');
-                            let textNodes = Array.from(primoTd.childNodes).filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent.trim());
+                            let textNodes = Array.from(primoTd.childNodes)
+                                .filter(node => node.nodeType === Node.TEXT_NODE)
+                                .map(node => node.textContent.trim());
                             let nomeStrutturaInCorso = textNodes[1] || "";
                             let livelloStrutturaInCorso = textNodes[2] || "N/A";
 
@@ -147,11 +149,14 @@ ipcMain.handle("get-strutture", async (event) => {
                                 livelloStrutturaInCorso = livelloStrutturaInCorso.split(" ")[1];
                             }
 
-                            if (!struttureInCorso[nomeStrutturaInCorso]) {
-                                struttureInCorso[nomeStrutturaInCorso] = [];
+                            if (nomeStrutturaInCorso) {
+                                if (!struttureInCorso[nomeStrutturaInCorso]) {
+                                    struttureInCorso[nomeStrutturaInCorso] = [];
+                                }
+                                struttureInCorso[nomeStrutturaInCorso].push(parseInt(livelloStrutturaInCorso, 10));
                             }
-                            struttureInCorso[nomeStrutturaInCorso].push(parseInt(livelloStrutturaInCorso, 10));
                         });
+                        console.log("Strutture in corso: ", JSON.stringify(struttureInCorso, null, 2));
                     } else {
                         let container = document.querySelector('#show_summary .widget_content .visual.day');
                         if (!container) {
