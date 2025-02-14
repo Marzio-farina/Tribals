@@ -44,6 +44,21 @@ app.on('activate', () => {
     }
 });
 
+ipcMain.on('openQg', (event, data) => {
+    if (!data) {
+            console.error("Errore: ricevuto 'openQg' senza dati validi.");
+            return;
+        }
+    const { villaggio, struttura } = data;
+    const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
+    if (winMain) {
+        console.log("Navigando verso:", url);
+        winMain.loadURL(url);
+    } else {
+        console.error("Errore: winMain non è definito.");
+    }
+});
+
 function waitForGameLoad(winMain) {
     return new Promise((resolve, reject) => {
         let attempts = 0;
@@ -81,30 +96,20 @@ ipcMain.handle("get-strutture", async (event) => {
         console.error("Errore: db o db.lista è undefined!");
         return { struttureInCorso: {}, struttureInCoda: {} };
     }
-    
+
+    // Lancia il controllo a intervalli regolari
+    // let livelliStrutture = { struttureInCorso: {}, struttureInCoda: {} };
+
+    // Funzione che controlla la presenza dell'elemento
     try {
-        await winMain.webContents.executeJavaScript(`
-            new Promise((resolve) => {
-                let checkExist = setInterval(() => {
-                    let container = document.querySelector('#show_summary .widget_content .visual.day');
-                    if (container) {
-                        clearInterval(checkExist);
-                        resolve();
-                    }
-                }, 500);
-            });
-        `);        
-        
         const livelliStrutture = await winMain.webContents.executeJavaScript(`
             (function() {
                 try {
                     const url = window.location.href;
                     let struttureInCorso = {};
                     let struttureInCoda = {};
-                    // console.log('URL corrente:', url);
-                    // console.log('Confronto strutturaCorrente:', '${strutturaCorrente}', url.includes('${strutturaCorrente}'));
 
-                    if (url.includes('${strutturaCorrente}')) {
+                    if (url.includes('main')) {
                         let container = document.querySelector('#buildings');
                         
                         if (!container) {
@@ -125,35 +130,27 @@ ipcMain.handle("get-strutture", async (event) => {
                         });
 
                         let buildQueueContainer = document.querySelector('#buildqueue');
-                        
-                        if (!buildQueueContainer) {
-                            console.error('Elemento #buildqueue non trovato.');
-                            return { struttureInCorso, struttureInCoda };
-                        }
-
                         let buildQueueRows = buildQueueContainer.querySelectorAll('tbody > tr:not(:first-child)'); // Esclude il primo tr
                         
                         buildQueueRows.forEach(row => {
                             let primoTd = row.querySelector('td:nth-child(1)');
                             let textNodes = Array.from(primoTd.childNodes).filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent.trim());
-                            let nomeStrutturaInCorso = textNodes[1];
-                            let livelloStrutturaInCorso = textNodes[2] || 'N/A';
+                            let nomeStrutturaInCorso = textNodes[1] || "";
+                            let livelloStrutturaInCorso = textNodes[2] || "N/A";
 
-                            if (!nomeStrutturaInCorso) return;
-                            
                             if (livelloStrutturaInCorso.includes("Livello")) {
                                 livelloStrutturaInCorso = livelloStrutturaInCorso.split(" ")[1];
                             }
 
-                            struttureInCorso[nomeStrutturaInCorso] = livelloStrutturaInCorso;
-                            console.log('Aggiunta alla coda:', nomeStrutturaInCorso, livelloStrutturaInCorso); // Log aggiunto per tracciare le strutture in coda
+                            if (nomeStrutturaInCorso.trim()) {
+                                struttureInCorso[nomeStrutturaInCorso] = livelloStrutturaInCorso;
+                            }
                         });
                     } else {
                         let container = document.querySelector('#show_summary .widget_content .visual.day');
                         if (!container) {
-                            console.error('Elemento non trovato:', '#show_summary .widget_content .visual.day');
-                        } else {
-                            console.log('Elemento trovato:', container);
+                            console.error('Container non trovato:', '#show_summary .widget_content .visual.day');
+                            return {};
                         }
                         container.querySelectorAll('.visual-label.tooltip-delayed').forEach(item => {
                             let nomeStruttura = item.getAttribute('data-title')?.trim() || 'N/A';
@@ -162,66 +159,44 @@ ipcMain.handle("get-strutture", async (event) => {
                         });
                     }                    
                     // console.log('Strutture in coda:', struttureInCoda); // Log aggiunto per visualizzare struttureInCoda
-                    return { struttureInCorso, struttureInCoda }; // Restituisco entrambi gli oggetti
+                    return { struttureInCorso, struttureInCoda };
                 } catch (err) {
                     console.error('Errore nello script di recupero:', err);
                     return {struttureInCorso: {}, struttureInCoda: {}};
                 }
             })();
         `);
-        // console.log("Livelli strutture ottenuti:", livelliStrutture);
+        // **CONVERSIONE STRUTTURE IN CORSO IN ARRAY**
+    const struttureInCorso = Object.entries(livelliStrutture.struttureInCorso)
+    .filter(([nome]) => nome.trim() !== '') // Rimuove chiavi vuote
+    .map(([nome, livello]) => ({
+        nome,
+        livello: parseInt(livello, 10) || 'N/A'
+    }));
 
-        ///xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        // DA RETTIFICARE PER QUANDO CI SONO IN STRUTTUREINCORSO 2 STRUTTURE UGUALE MA LIVELLI DIVERSI
-        ///xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        const struttureInCodaFiltrate = []; // Inizializziamo come array
+    const struttureInCodaFiltrate = [];
+    lista.struttura.forEach(({ nome, livello }) => {
+        const livelloAttuale = parseInt(livelliStrutture.struttureInCoda[nome] || "0", 10);
+        if (livello > livelloAttuale) {
+            struttureInCodaFiltrate.push({ nome, livello });
+        }
+    });
 
-        // 1️⃣ - Iteriamo tutte le strutture definite in db.js
-        lista.struttura.forEach(({ nome, livello }) => {
-            const livelloAttuale = livelliStrutture.struttureInCoda?.[nome] 
-                ? parseInt(livelliStrutture.struttureInCoda[nome], 10) 
-                : 0;
-            // console.log("Dati ricevuti da executeJavaScript:", livelliStrutture);
-            // console.log("Strutture in Coda:", livelliStrutture?.struttureInCoda);
-            // console.log("Strutture in Corso:", livelliStrutture?.struttureInCorso);
-            // 2️⃣ - Se il livello in db.js è superiore al livello attuale, lo aggiungiamo all'array
-            if (livello > livelloAttuale) {
-                struttureInCodaFiltrate.push({ nome, livello });
-            }
-        });
-        // 3️⃣ - Creiamo un array con le strutture in corso per un confronto più semplice
-        const struttureInCorso = []; // Modifica: uso un array per mantenere più istanze dello stesso nome
-        Object.entries(livelliStrutture.struttureInCorso).forEach(([nome, livello]) => {
-            struttureInCorso.push({ nome, livello: parseInt(livello, 10) });
-        });
+    const struttureInCodaFinali = [];
+    struttureInCodaFiltrate.forEach(struttura => {
+        let isAlreadyInCorso = struttureInCorso.some(str => str.nome === struttura.nome && str.livello === struttura.livello);
+        if (!isAlreadyInCorso) {
+            struttureInCodaFinali.push(struttura);
+        }
+    });
 
-        // 4️⃣ - Filtriamo struttureInCodaFiltrate per escludere quelle già presenti in struttureInCorso
-        const struttureInCodaFinali = [];
+    console.log("Strutture in corso: " + JSON.stringify(struttureInCorso, null, 2) + 
+                " Strutture in coda: " + JSON.stringify(struttureInCodaFinali, null, 2));
 
-        struttureInCodaFiltrate.forEach(struttura => {
-            let isAlreadyInCorso = false;
-
-            // Controlliamo se la struttura è già presente in struttureInCorso
-            struttureInCorso.forEach(str => {
-                if (str.nome === struttura.nome && str.livello === struttura.livello) {
-                    isAlreadyInCorso = true; // Se troviamo una corrispondenza, flagghiamo come presente
-                }
-            });
-
-            // Se la struttura non è già in corso, la aggiungiamo a struttureInCodaFinali
-            if (!isAlreadyInCorso) {
-                struttureInCodaFinali.push(struttura);
-            }
-        });
-
-        // 5️⃣ - Debug per controllare i risultati
-        // console.log("Strutture in coda finali:", struttureInCodaFinali);
-
-        // 6️⃣ - Restituiamo le strutture in corso e in coda
-        return { struttureInCorso: livelliStrutture.struttureInCorso, struttureInCoda: struttureInCodaFinali };
+    return { struttureInCorso, struttureInCoda: struttureInCodaFinali };
 
     } catch (error) {
-        console.error("Errore nel recupero dei livelli delle strutture:", error);
-        return { struttureInCorso: [], struttureInCoda: []}; // In caso di errore, restituiamo oggetti vuoti
+    console.error("Errore nel recupero dei livelli delle strutture:", error);
+    return { struttureInCorso: [], struttureInCoda: [] };
     }
 });

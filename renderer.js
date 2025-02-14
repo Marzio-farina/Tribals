@@ -1,14 +1,15 @@
 const { ipcRenderer } = require('electron');
 
-ipcRenderer.once('openQg', (event, data) => {
-    if (!data) {
-        console.error("Errore: ricevuto 'openQg' senza dati validi.");
-        return;
-    }
-    const { villaggio, struttura } = data;
-    const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
-    window.location.href = url;
-});
+// ipcRenderer.on('openQg', (event, data) => {
+//     if (!data) {
+//         console.error("Errore: ricevuto 'openQg' senza dati validi.");
+//         return;
+//     }
+//     const { villaggio, struttura } = data;
+//     const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
+//     console.log("Navigando verso:", url);
+//     window.location.href = url;
+// });
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.__updateInterval) {
@@ -18,21 +19,21 @@ document.addEventListener('DOMContentLoaded', () => {
         ipcRenderer.invoke('get-strutture')
             .then(listaCoda)
             .catch(error => console.error("Errore aggiornamento strutture:", error));
-    }, 5000);
+    }, 10000);
 });
 
 function listaCoda(livelliStrutture) {
     const containerInCoda = document.getElementById("containerInCoda");
     const containerAttivi = document.getElementById("containerAttivi");
-
     const struttureInCoda = livelliStrutture.struttureInCoda || [];
-    const struttureInCorso = livelliStrutture.struttureInCorso || {};
+    const struttureInCorso = livelliStrutture.struttureInCorso || [];
 
-    // console.log("Strutture in coda:", struttureInCoda);
-    // console.log("Altre strutture:", struttureInCorso);
-
-    containerInCoda.innerHTML = '';
-    containerAttivi.innerHTML = '';
+    if (!containerInCoda || !containerAttivi) {
+        console.error("Uno o più container non trovati nella finestra laterale.");
+    } else {
+        containerInCoda.innerHTML = '';
+        containerAttivi.innerHTML = '';
+    }
 
     if (struttureInCoda.length > 0) {
         struttureInCoda.forEach(({ nome, livello }) => {
@@ -56,8 +57,8 @@ function listaCoda(livelliStrutture) {
         console.log("Nessuna struttura in coda.");
     }
 
-    if (Object.keys(struttureInCorso).length > 0) {
-        Object.entries(struttureInCorso).forEach(([nome, livello]) => {
+    if (struttureInCorso.length > 0) {
+        struttureInCorso.forEach(({ nome, livello }) => {
             const div = document.createElement("div");
             div.className = "m-3 border-bottom border-top border-secondary";
             div.innerHTML = `
@@ -77,8 +78,7 @@ function listaCoda(livelliStrutture) {
             `;
             containerAttivi.appendChild(div);
         });
-
-        console.log("Strutture generate, avvio aggiornamento delay...");
-        setTimeout(aggiornaDelay, 500);
-    }
+    } else {
+        console.log("Nessuna struttura in corso.");
+    }    
 }

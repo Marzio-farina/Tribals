@@ -14,9 +14,8 @@ function createWindows() {
         x: 0,
         y: 0,
         webPreferences: {
-            preload: path.join(__dirname, 'renderer.js'),
             nodeIntegration: false,
-            contextIsolation: false,
+            contextIsolation: true,
         },
     });
 
@@ -58,6 +57,7 @@ function createWindows() {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
+            preload: path.join(__dirname, 'renderer.js'),
         },
     });
 
