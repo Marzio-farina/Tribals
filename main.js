@@ -97,10 +97,6 @@ ipcMain.handle("get-strutture", async (event) => {
         return { struttureInCorso: {}, struttureInCoda: {} };
     }
 
-    // Lancia il controllo a intervalli regolari
-    // let livelliStrutture = { struttureInCorso: {}, struttureInCoda: {} };
-
-    // Funzione che controlla la presenza dell'elemento
     try {
         const livelliStrutture = await winMain.webContents.executeJavaScript(`
             (function() {
@@ -126,10 +122,19 @@ ipcMain.handle("get-strutture", async (event) => {
                             if (livelloElemento.includes("Livello")) {
                                 livelloElemento = livelloElemento.split(" ")[1]; // Estrae il numero del livello
                             }
-                            struttureInCoda[nomeStruttura] = livelloElemento;
+                            if (!struttureInCoda[nomeStruttura]) {
+                                struttureInCoda[nomeStruttura] = [];
+                            }
+                            struttureInCoda[nomeStruttura].push(parseInt(livelloElemento, 10));
                         });
 
                         let buildQueueContainer = document.querySelector('#buildqueue');
+                        
+                        if (!buildQueueContainer) {
+                            console.error("Errore: #buildqueue non trovato nella pagina.");
+                            return { struttureInCorso, struttureInCoda };
+                        }
+                        
                         let buildQueueRows = buildQueueContainer.querySelectorAll('tbody > tr:not(:first-child)'); // Esclude il primo tr
                         
                         buildQueueRows.forEach(row => {
@@ -142,9 +147,10 @@ ipcMain.handle("get-strutture", async (event) => {
                                 livelloStrutturaInCorso = livelloStrutturaInCorso.split(" ")[1];
                             }
 
-                            if (nomeStrutturaInCorso.trim()) {
-                                struttureInCorso[nomeStrutturaInCorso] = livelloStrutturaInCorso;
+                            if (!struttureInCorso[nomeStrutturaInCorso]) {
+                                struttureInCorso[nomeStrutturaInCorso] = [];
                             }
+                            struttureInCorso[nomeStrutturaInCorso].push(parseInt(livelloStrutturaInCorso, 10));
                         });
                     } else {
                         let container = document.querySelector('#show_summary .widget_content .visual.day');
@@ -157,46 +163,38 @@ ipcMain.handle("get-strutture", async (event) => {
                             let livelloElemento = item.querySelector('a')?.textContent?.trim() || 'N/A';
                             struttureInCoda[nomeStruttura] = livelloElemento;
                         });
-                    }                    
-                    // console.log('Strutture in coda:', struttureInCoda); // Log aggiunto per visualizzare struttureInCoda
+                    }
                     return { struttureInCorso, struttureInCoda };
                 } catch (err) {
                     console.error('Errore nello script di recupero:', err);
-                    return {struttureInCorso: {}, struttureInCoda: {}};
+                    return {struttureInCorso, struttureInCoda};
                 }
             })();
         `);
-        // **CONVERSIONE STRUTTURE IN CORSO IN ARRAY**
-    const struttureInCorso = Object.entries(livelliStrutture.struttureInCorso)
-    .filter(([nome]) => nome.trim() !== '') // Rimuove chiavi vuote
-    .map(([nome, livello]) => ({
-        nome,
-        livello: parseInt(livello, 10) || 'N/A'
-    }));
 
-    const struttureInCodaFiltrate = [];
-    lista.struttura.forEach(({ nome, livello }) => {
-        const livelloAttuale = parseInt(livelliStrutture.struttureInCoda[nome] || "0", 10);
-        if (livello > livelloAttuale) {
-            struttureInCodaFiltrate.push({ nome, livello });
+        const struttureInCorsoFinali = Object.entries(livelliStrutture.struttureInCorso).flatMap(([nome, livelli]) => 
+            livelli.map(livello => ({ nome, livello }))
+        );
+    
+        let struttureInCodaFiltrate = [];
+        if (lista && lista.struttura) {
+            struttureInCodaFiltrate = lista.struttura.filter(({ nome, livello }) => {
+                const livelloAttuale = parseInt(livelliStrutture.struttureInCoda[nome] || "0", 10);
+                return livello > livelloAttuale;
+            });
         }
-    });
+    
+        // **Dichiarazione delle strutture in coda dopo il filtraggio**
+        const struttureInCodaFinali = struttureInCodaFiltrate.filter(struttura => 
+            !struttureInCorsoFinali.some(str => str.nome === struttura.nome && str.livello === struttura.livello)
+        );
 
-    const struttureInCodaFinali = [];
-    struttureInCodaFiltrate.forEach(struttura => {
-        let isAlreadyInCorso = struttureInCorso.some(str => str.nome === struttura.nome && str.livello === struttura.livello);
-        if (!isAlreadyInCorso) {
-            struttureInCodaFinali.push(struttura);
-        }
-    });
+        // console.log("Strutture in corso:", JSON.stringify(struttureInCorsoFinali, null, 2));
+        // console.log("Strutture in coda:", JSON.stringify(struttureInCodaFinali, null, 2));
 
-    console.log("Strutture in corso: " + JSON.stringify(struttureInCorso, null, 2) + 
-                " Strutture in coda: " + JSON.stringify(struttureInCodaFinali, null, 2));
-
-    return { struttureInCorso, struttureInCoda: struttureInCodaFinali };
-
+        return { struttureInCorso: struttureInCorsoFinali, struttureInCoda: struttureInCodaFinali };
     } catch (error) {
-    console.error("Errore nel recupero dei livelli delle strutture:", error);
-    return { struttureInCorso: [], struttureInCoda: [] };
+        console.error("Errore nel recupero dei livelli delle strutture:", error);
+        return { struttureInCorso: [], struttureInCoda: [] };
     }
 });
