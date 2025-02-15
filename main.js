@@ -14,8 +14,6 @@ function initialize() {
     winMain = windows.winMain;
     winSide = windows.winSide;
 
-    // winMain.webContents.openDevTools();
-    // winSide.webContents.openDevTools();
     winMain.webContents.once('did-finish-load', async () => {
         setTimeout(async () => {
             try {
@@ -27,7 +25,7 @@ function initialize() {
                 const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
                 winMain.loadURL(url);
                 await UpFree(winMain, winSide, url);
-                setInterval(() => fetchResources(winMain), 5000);
+                setInterval(() => fetchResources(winMain), 2000);
             } catch (error) {
                 console.error("Errore durante il flusso:", error);
             }            
@@ -209,9 +207,11 @@ ipcMain.handle("get-strutture", async (event) => {
                 risorseAttuali.argilla >= costiStruttura[nome][livello - 1].argilla &&
                 risorseAttuali.ferro >= costiStruttura[nome][livello - 1].ferro) {
                 
-                upStruttureRisorse(winMain, risorseAttuali, resouceID[primaStruttura.nome]);
-
-                struttureInCodaFinali = struttureInCodaFinali.slice(1);
+                winMain.loadURL(url);
+                winMain.webContents.once('did-finish-load', () => {
+                    upStruttureRisorse(winMain, risorseAttuali, resouceID[primaStruttura.nome]);
+                    struttureInCodaFinali = struttureInCodaFinali.slice(1);
+                });
             } else {
                 console.log(`Risorse insufficienti per avviare ${nome} livello ${livello}.`);
             }

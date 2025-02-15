@@ -13,13 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
 
     ipcRenderer.on('update-delay', (event, data) => {
-        console.log("Aggiornamento delay ricevuto:", data);
         window.__delay = data.delay || 0;
         aggiornaDelayUI();
     });
 
     function aggiornaUIContinuamente() {
-        console.log("Delay corrente:", window.__delay);
         if (window.__delay > 0) {
             window.__delay -= 1000;
             aggiornaDelayUI();
