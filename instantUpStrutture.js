@@ -6,7 +6,6 @@ function UpFree(winMain, winSide) {
                 if (!upFree) {
                     return JSON.stringify({ delay: null, message: "Elemento non trovato." });
                 }
-
                 let dataAvailableFrom = parseInt(upFree.getAttribute('data-available-from')) * 1000;
                 let currentTime = Date.now();
                 let delay = dataAvailableFrom - currentTime + 1000;
@@ -23,10 +22,8 @@ function UpFree(winMain, winSide) {
                     }, delay);
                 } else {
                     upFree.click();
-                }
-                
+                }                
                 return JSON.stringify({ delay, message: "Attendo " + delay + " ms per il click." });
-
             } catch (err) {
                 return JSON.stringify({ delay: null, message: "Errore esecuzione: " + err.message });
             }
@@ -41,14 +38,13 @@ function UpFree(winMain, winSide) {
 
             function updateDelay() {
                 if (remainingDelay > 0) {
-                    remainingDelay -= 1000; // Scala il delay ogni secondo
+                    remainingDelay -= 1000;
                     winSide.webContents.send('update-delay', { delay: remainingDelay });
                     setTimeout(updateDelay, 1000);
                 } else {
                     winSide.webContents.send('update-delay', { delay: 0, message: "Subito disponibile" });
                 }
             }
-
             updateDelay();
 
         } catch (err) {

@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         setTimeout(aggiornaUIContinuamente, 1000);
     }
-
     aggiornaUIContinuamente();
 });
 
