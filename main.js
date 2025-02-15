@@ -102,10 +102,11 @@ ipcMain.handle("get-strutture", async (event) => {
             (function() {
                 try {
                     const url = window.location.href;
-                    let struttureInCorso = {};
+                    let struttureInCorso = JSON.parse(sessionStorage.getItem('struttureInCorso')) || {}; 
                     let struttureInCoda = {};
 
                     if (url.includes('main')) {
+                        struttureInCorso = {};
                         let container = document.querySelector('#buildings');
                         
                         if (!container) {
@@ -156,7 +157,14 @@ ipcMain.handle("get-strutture", async (event) => {
                                 struttureInCorso[nomeStrutturaInCorso].push(parseInt(livelloStrutturaInCorso, 10));
                             }
                         });
+                        sessionStorage.setItem('struttureInCorso', JSON.stringify(struttureInCorso));
                     } else {
+                        // // console.log(struttureInCorso);
+                        // if (typeof struttureInCorso != 'undefined' || Object.keys(struttureInCorso).length != 0) {
+                        //     struttureInCorso = {};
+                        //     console.log("provolone");
+                        // }                      
+
                         let container = document.querySelector('#show_summary .widget_content .visual.day');
                         if (!container) {
                             console.error('Container non trovato:', '#show_summary .widget_content .visual.day');
