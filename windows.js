@@ -1,4 +1,4 @@
-const { BrowserWindow, ipcRenderer } = require('electron');
+const { BrowserWindow } = require('electron');
 const { login, loginMondo91 } = require('./login');
 const { risorse } = require('./risorse');
 const path = require('path');
@@ -39,7 +39,6 @@ function createWindows() {
             try {
                 const { legno, argilla, ferro } = await risorse(winMain);
                 risorseAttuali = { legno, argilla, ferro };
-                console.log('Risorse ottenute:', risorseAttuali);
                 winMain.webContents.send('update-risorse', risorseAttuali);
             } catch (error) {
                 console.error('Errore nel recupero delle risorse:', error);

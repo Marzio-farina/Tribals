@@ -13,16 +13,19 @@ function initialize() {
     winMain = windows.winMain;
     winSide = windows.winSide;
 
+    winMain.webContents.openDevTools();
     winMain.webContents.once('did-finish-load', async () => {
         setTimeout(async () => {
             try {
                 await login(winMain);
                 await loginMondo91(winMain);
                 await waitForGameLoad(winMain);
-
                 const villaggio = "4477";
                 const struttura = "main";
-                winMain.webContents.send('openQg', { villaggio, struttura });
+                console.log("Inviando evento 'openQg' con i dati:", { villaggio, struttura });
+                const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
+                winMain.loadURL(url)
+                console.log("testo dopo");
             } catch (error) {
                 console.error("Errore durante il flusso:", error);
             }
@@ -41,21 +44,6 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
-    }
-});
-
-ipcMain.on('openQg', (event, data) => {
-    if (!data) {
-            console.error("Errore: ricevuto 'openQg' senza dati validi.");
-            return;
-        }
-    const { villaggio, struttura } = data;
-    const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
-    if (winMain) {
-        console.log("Navigando verso:", url);
-        winMain.loadURL(url);
-    } else {
-        console.error("Errore: winMain non è definito.");
     }
 });
 
@@ -103,10 +91,11 @@ ipcMain.handle("get-strutture", async (event) => {
                 try {
                     const url = window.location.href;
                     let struttureInCorso = JSON.parse(sessionStorage.getItem('struttureInCorso')) || {}; 
-                    let struttureInCoda = {};
+                    let struttureInCoda = JSON.parse(sessionStorage.getItem('struttureInCoda')) || {};
 
                     if (url.includes('main')) {
                         struttureInCorso = {};
+                        struttureInCoda = {};
                         let container = document.querySelector('#buildings');
                         
                         if (!container) {
@@ -133,6 +122,8 @@ ipcMain.handle("get-strutture", async (event) => {
                         
                         if (!buildQueueContainer) {
                             console.error("Errore: #buildqueue non trovato nella pagina.");
+                            sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
+                            sessionStorage.setItem('struttureInCorso', JSON.stringify(struttureInCorso));
                             return { struttureInCorso, struttureInCoda };
                         }
                         
@@ -157,25 +148,29 @@ ipcMain.handle("get-strutture", async (event) => {
                                 struttureInCorso[nomeStrutturaInCorso].push(parseInt(livelloStrutturaInCorso, 10));
                             }
                         });
-                        sessionStorage.setItem('struttureInCorso', JSON.stringify(struttureInCorso));
-                    } else {
-                        // // console.log(struttureInCorso);
-                        // if (typeof struttureInCorso != 'undefined' || Object.keys(struttureInCorso).length != 0) {
-                        //     struttureInCorso = {};
-                        //     console.log("provolone");
-                        // }                      
-
-                        let container = document.querySelector('#show_summary .widget_content .visual.day');
-                        if (!container) {
-                            console.error('Container non trovato:', '#show_summary .widget_content .visual.day');
-                            return {};
+                        if (Object.keys(struttureInCorso).length === 0) {
+                            console.log('Nessuna struttura in corso.');
+                            sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
+                            sessionStorage.setItem('struttureInCorso', JSON.stringify({})); // Aggiorna sessionStorage con un oggetto vuoto
+                            return { struttureInCorso: {}, struttureInCoda }; // Restituisci un oggetto vuoto
                         }
-                        container.querySelectorAll('.visual-label.tooltip-delayed').forEach(item => {
-                            let nomeStruttura = item.getAttribute('data-title')?.trim() || 'N/A';
-                            let livelloElemento = item.querySelector('a')?.textContent?.trim() || 'N/A';
-                            struttureInCoda[nomeStruttura] = livelloElemento;
-                        });
-                    }
+                        sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
+                        sessionStorage.setItem('struttureInCorso', JSON.stringify(struttureInCorso));
+                    } else if (url.includes('overview&intro')) {
+                        let container = document.querySelector('#show_summary .widget_content .visual.day');
+                        
+                        if (container) {
+                            container.querySelectorAll('.visual-label.tooltip-delayed').forEach(item => {
+                                let nomeStruttura = item.getAttribute('data-title')?.trim() || 'N/A';
+                                let livelloElemento = item.querySelector('a')?.textContent?.trim() || 'N/A';
+                                if (!struttureInCoda[nomeStruttura]) {
+                                    struttureInCoda[nomeStruttura] = [];
+                                }
+                                struttureInCoda[nomeStruttura].push(parseInt(livelloElemento, 10));
+                            });
+                        };
+                        sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
+                    };
                     return { struttureInCorso, struttureInCoda };
                 } catch (err) {
                     console.error('Errore nello script di recupero:', err);

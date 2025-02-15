@@ -1,16 +1,5 @@
 const { ipcRenderer } = require('electron');
 
-// ipcRenderer.on('openQg', (event, data) => {
-//     if (!data) {
-//         console.error("Errore: ricevuto 'openQg' senza dati validi.");
-//         return;
-//     }
-//     const { villaggio, struttura } = data;
-//     const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
-//     console.log("Navigando verso:", url);
-//     window.location.href = url;
-// });
-
 document.addEventListener('DOMContentLoaded', () => {
     if (window.__updateInterval) {
         clearInterval(window.__updateInterval);
@@ -19,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ipcRenderer.invoke('get-strutture')
             .then(listaCoda)
             .catch(error => console.error("Errore aggiornamento strutture:", error));
-    }, 10000);
+    }, 2000);
 });
 
 function listaCoda(livelliStrutture) {
@@ -47,7 +36,7 @@ function listaCoda(livelliStrutture) {
                     </div>                
                     <div class="w-75">
                         <h5>${nome}</h5>
-                        <h6>Lv. ${livello}</h6>                   
+                        <h6>Lv. ${livello}</h6>
                     </div>
                 </div>
             `;
@@ -80,6 +69,5 @@ function listaCoda(livelliStrutture) {
         });
     } else {
         console.log("Nessuna struttura in corso.");
-    }    
+    }
 }
-
