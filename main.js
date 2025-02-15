@@ -156,7 +156,6 @@ ipcMain.handle("get-strutture", async (event) => {
                                 struttureInCorso[nomeStrutturaInCorso].push(parseInt(livelloStrutturaInCorso, 10));
                             }
                         });
-                        console.log("Strutture in corso: ", JSON.stringify(struttureInCorso, null, 2));
                     } else {
                         let container = document.querySelector('#show_summary .widget_content .visual.day');
                         if (!container) {
@@ -189,13 +188,9 @@ ipcMain.handle("get-strutture", async (event) => {
             });
         }
     
-        // **Dichiarazione delle strutture in coda dopo il filtraggio**
         const struttureInCodaFinali = struttureInCodaFiltrate.filter(struttura => 
             !struttureInCorsoFinali.some(str => str.nome === struttura.nome && str.livello === struttura.livello)
         );
-
-        // console.log("Strutture in corso:", JSON.stringify(struttureInCorsoFinali, null, 2));
-        // console.log("Strutture in coda:", JSON.stringify(struttureInCodaFinali, null, 2));
 
         return { struttureInCorso: struttureInCorsoFinali, struttureInCoda: struttureInCodaFinali };
     } catch (error) {
