@@ -24,7 +24,7 @@ function initialize() {
                 const struttura = "main";
                 const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
                 winMain.loadURL(url);
-                await UpFree(winMain, winSide);
+                await UpFree(winMain, winSide, url);
             } catch (error) {
                 console.error("Errore durante il flusso:", error);
             }
