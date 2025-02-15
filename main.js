@@ -12,8 +12,8 @@ function initialize() {
     winMain = windows.winMain;
     winSide = windows.winSide;
 
-    winMain.webContents.openDevTools();
-    winSide.webContents.openDevTools();
+    // winMain.webContents.openDevTools();
+    // winSide.webContents.openDevTools();
     winMain.webContents.once('did-finish-load', async () => {
         setTimeout(async () => {
             try {
