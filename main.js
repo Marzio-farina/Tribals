@@ -1,11 +1,10 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const createWindows = require('./windows');
 const { login, loginMondo91 } = require('./login');
+const { UpFree } = require('./instantUpStrutture');
 const { db, lista } = require('./db');
 
 let winMain,winSide;
-let strutturaCorrente;
-let villaggioCorrente;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
 
 function initialize() {
@@ -14,6 +13,7 @@ function initialize() {
     winSide = windows.winSide;
 
     winMain.webContents.openDevTools();
+    winSide.webContents.openDevTools();
     winMain.webContents.once('did-finish-load', async () => {
         setTimeout(async () => {
             try {
@@ -22,10 +22,9 @@ function initialize() {
                 await waitForGameLoad(winMain);
                 const villaggio = "4477";
                 const struttura = "main";
-                console.log("Inviando evento 'openQg' con i dati:", { villaggio, struttura });
                 const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
-                winMain.loadURL(url)
-                console.log("testo dopo");
+                winMain.loadURL(url);
+                await UpFree(winMain, winSide);
             } catch (error) {
                 console.error("Errore durante il flusso:", error);
             }

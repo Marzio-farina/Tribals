@@ -3,13 +3,28 @@ const { ipcRenderer } = require('electron');
 document.addEventListener('DOMContentLoaded', () => {
     if (window.__updateInterval) {
         clearInterval(window.__updateInterval);
-    }
+    };
+    window.__delay = 0;
     window.__updateInterval = setInterval(() => {
         ipcRenderer.invoke('get-strutture')
             .then(listaCoda)
             .catch(error => console.error("Errore aggiornamento strutture:", error));
     }, 2000);
+
+    ipcRenderer.on('update-delay', (event, data) => {
+        window.__delay = data.delay || 0;
+        aggiornaDelayUI();
+    });
 });
+
+function aggiornaDelayUI() {
+    const delayInfoElements = document.querySelectorAll('.delay-info span');
+    delayInfoElements.forEach(span => {
+        span.textContent = window.__delay > 0 
+            ? `${Math.round(window.__delay / 1000)} s`
+            : "Subito disponibile";
+    });
+}
 
 function listaCoda(livelliStrutture) {
     const containerInCoda = document.getElementById("containerInCoda");
@@ -61,7 +76,7 @@ function listaCoda(livelliStrutture) {
                         <h6>Lv. ${livello}</h6>
                     </div>
                     <div class="d-flex align-items-end mb-1 delay-info" style="width: 75px">
-                        <span>In attesa...</span>
+                        <span>${window.__delay > 0 ? `${Math.round(window.__delay / 1000)} s` : "in corso"}</span>
                     </div>
                 </div>
             `;
