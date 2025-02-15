@@ -1,9 +1,5 @@
 const { BrowserWindow } = require('electron');
-const { login, loginMondo91 } = require('./login');
-const { risorse } = require('./risorse');
 const path = require('path');
-
-let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
 
 function createWindows() {
 
@@ -34,19 +30,6 @@ function createWindows() {
         }, 2000);
     });
 
-    winMain.webContents.once('did-finish-load', () => {
-        const fetchResources = async () => {
-            try {
-                const { legno, argilla, ferro } = await risorse(winMain);
-                risorseAttuali = { legno, argilla, ferro };
-                winMain.webContents.send('update-risorse', risorseAttuali);
-            } catch (error) {
-                console.error('Errore nel recupero delle risorse:', error);
-            }
-        };
-        setInterval(fetchResources, 5000);
-    });
-
     //FINESTRA LATERALE CHE AUTOMATIZZA
     const winSide = new BrowserWindow({
         width: 460,
@@ -65,7 +48,6 @@ function createWindows() {
     winSide.webContents.once('did-fail-load', (event, errorCode, errorDescription) => {
         console.error(`Errore nel caricamento della finestra laterale: ${errorDescription} (Codice errore: ${errorCode})`);
     });
-
     return { winMain, winSide };
 }
 

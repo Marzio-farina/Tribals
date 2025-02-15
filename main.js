@@ -1,8 +1,10 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const createWindows = require('./windows');
 const { login, loginMondo91 } = require('./login');
+const { risorse } = require('./risorse');
+const { upStruttureRisorse } = require('./upStrutture');
 const { UpFree } = require('./instantUpStrutture');
-const { db, lista } = require('./db');
+const { costiStruttura, getCostiStruttura, lista, resouceID} = require('./db');
 
 let winMain,winSide;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
@@ -25,9 +27,10 @@ function initialize() {
                 const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
                 winMain.loadURL(url);
                 await UpFree(winMain, winSide, url);
+                setInterval(() => fetchResources(winMain), 5000);
             } catch (error) {
                 console.error("Errore durante il flusso:", error);
-            }
+            }            
         }, 3000);
     });
 }
@@ -45,6 +48,16 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+async function fetchResources(winMain) {
+    try {
+        const { legno, argilla, ferro } = await risorse(winMain);
+        risorseAttuali = { legno, argilla, ferro };
+        winMain.webContents.send('update-risorse', risorseAttuali);
+    } catch (error) {
+        console.error('Errore nel recupero delle risorse:', error);
+    }
+}
 
 function waitForGameLoad(winMain) {
     return new Promise((resolve, reject) => {
@@ -147,12 +160,6 @@ ipcMain.handle("get-strutture", async (event) => {
                                 struttureInCorso[nomeStrutturaInCorso].push(parseInt(livelloStrutturaInCorso, 10));
                             }
                         });
-                        if (Object.keys(struttureInCorso).length === 0) {
-                            console.log('Nessuna struttura in corso.');
-                            sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
-                            sessionStorage.setItem('struttureInCorso', JSON.stringify({})); // Aggiorna sessionStorage con un oggetto vuoto
-                            return { struttureInCorso: {}, struttureInCoda }; // Restituisci un oggetto vuoto
-                        }
                         sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
                         sessionStorage.setItem('struttureInCorso', JSON.stringify(struttureInCorso));
                     } else if (url.includes('overview&intro')) {
@@ -178,7 +185,7 @@ ipcMain.handle("get-strutture", async (event) => {
             })();
         `);
 
-        const struttureInCorsoFinali = Object.entries(livelliStrutture.struttureInCorso).flatMap(([nome, livelli]) => 
+        let struttureInCorsoFinali = Object.entries(livelliStrutture.struttureInCorso).flatMap(([nome, livelli]) => 
             livelli.map(livello => ({ nome, livello }))
         );
     
@@ -190,10 +197,25 @@ ipcMain.handle("get-strutture", async (event) => {
             });
         }
     
-        const struttureInCodaFinali = struttureInCodaFiltrate.filter(struttura => 
+        let struttureInCodaFinali = struttureInCodaFiltrate.filter(struttura => 
             !struttureInCorsoFinali.some(str => str.nome === struttura.nome && str.livello === struttura.livello)
         );
 
+        if (struttureInCorsoFinali.length === 0 && struttureInCodaFinali.length > 0) {
+            let primaStruttura = struttureInCodaFinali[0];
+            let { nome, livello } = primaStruttura;
+
+            if (risorseAttuali.legno >= costiStruttura[nome][livello - 1].legno &&
+                risorseAttuali.argilla >= costiStruttura[nome][livello - 1].argilla &&
+                risorseAttuali.ferro >= costiStruttura[nome][livello - 1].ferro) {
+                
+                upStruttureRisorse(winMain, risorseAttuali, resouceID[primaStruttura.nome]);
+
+                struttureInCodaFinali = struttureInCodaFinali.slice(1);
+            } else {
+                console.log(`Risorse insufficienti per avviare ${nome} livello ${livello}.`);
+            }
+        }
         return { struttureInCorso: struttureInCorsoFinali, struttureInCoda: struttureInCodaFinali };
     } catch (error) {
         console.error("Errore nel recupero dei livelli delle strutture:", error);

@@ -1,4 +1,3 @@
-// Funzione per generare i costi per ogni livello
 const costiStruttura = {
     "Quartier Generale": [
         { legno: 90, argilla: 80, ferro: 70 },
@@ -422,6 +421,21 @@ const lista = {
         { nome: "Magazzino", livello: 8 },
         { nome: "Magazzino", livello: 9 },
         { nome: "Magazzino", livello: 10 },
+        { nome: "Pozzo di argilla", livello: 8 },
+        { nome: "Pozzo di argilla", livello: 9 },
+        { nome: "Pozzo di argilla", livello: 10 },
+        { nome: "Pozzo di argilla", livello: 11 },
+        { nome: "Pozzo di argilla", livello: 12 },
+        { nome: "Pozzo di argilla", livello: 13 },
+        { nome: "Pozzo di argilla", livello: 14 },
+        { nome: "Pozzo di argilla", livello: 15 },
+        { nome: "Pozzo di argilla", livello: 16 },
+        { nome: "Pozzo di argilla", livello: 17 },
+        { nome: "Fattoria", livello: 7 },
+        { nome: "Fattoria", livello: 8 },
+        { nome: "Fattoria", livello: 9 },
+        { nome: "Caserma", livello: 6 },
+        { nome: "Caserma", livello: 7 },
         { nome: "Quartier Generale", livello: 11 },
         { nome: "Quartier Generale", livello: 12 },
         { nome: "Quartier Generale", livello: 13 },
@@ -442,8 +456,6 @@ const lista = {
         { nome: "Quartier Generale", livello: 28 },
         { nome: "Quartier Generale", livello: 29 },
         { nome: "Quartier Generale", livello: 30 },
-        { nome: "Caserma", livello: 6 },
-        { nome: "Caserma", livello: 7 },
         { nome: "Caserma", livello: 8 },
         { nome: "Caserma", livello: 9 },
         { nome: "Caserma", livello: 10 },
@@ -551,16 +563,6 @@ const lista = {
         { nome: "Taglialegna", livello: 28 },
         { nome: "Taglialegna", livello: 29 },
         { nome: "Taglialegna", livello: 30 },
-        { nome: "Pozzo di argilla", livello: 8 },
-        { nome: "Pozzo di argilla", livello: 9 },
-        { nome: "Pozzo di argilla", livello: 10 },
-        { nome: "Pozzo di argilla", livello: 11 },
-        { nome: "Pozzo di argilla", livello: 12 },
-        { nome: "Pozzo di argilla", livello: 13 },
-        { nome: "Pozzo di argilla", livello: 14 },
-        { nome: "Pozzo di argilla", livello: 15 },
-        { nome: "Pozzo di argilla", livello: 16 },
-        { nome: "Pozzo di argilla", livello: 17 },
         { nome: "Pozzo di argilla", livello: 18 },
         { nome: "Pozzo di argilla", livello: 19 },
         { nome: "Pozzo di argilla", livello: 20 },
@@ -598,9 +600,6 @@ const lista = {
         { nome: "Miniera di ferro", livello: 28 },
         { nome: "Miniera di ferro", livello: 29 },
         { nome: "Miniera di ferro", livello: 30 },
-        { nome: "Fattoria", livello: 7 },
-        { nome: "Fattoria", livello: 8 },
-        { nome: "Fattoria", livello: 9 },
         { nome: "Fattoria", livello: 10 },
         { nome: "Fattoria", livello: 11 },
         { nome: "Fattoria", livello: 12 },
@@ -668,7 +667,25 @@ const lista = {
     ]
 };
 
-// Funzione per ottenere i costi di una struttura per un determinato livello
+const resouceID = {
+    "Quartier Generale": "main_buildrow_main",
+    "Caserma": "main_buildrow_barracks",
+    "Stalla": "main_buildrow_stable",
+    "Officina": "", //Attualmente assente
+    "Fabbro": "main_buildrow_smith",
+    "Mercato": "main_buildrow_market",
+    "Taglialegna": "main_buildrow_wood",
+    "Pozzo di argilla": "main_buildrow_stone",
+    "Miniera di ferro": "main_buildrow_iron",
+    "Fattoria": "main_buildrow_farm",
+    "Magazzino": "main_buildrow_storage",
+    "Nascondiglio": "main_buildrow_hide",
+    "Mura": "main_buildrow_wall",
+    "Statua": "main_buildrow_statue",
+    "Raduno": "main_buildrow_place",
+    "Accademia": "", //Attualmente assente
+}
+
 function getCostiStruttura(nomeStruttura, livello) {
     const struttura = costiStruttura[nomeStruttura];
     if (!struttura) {
@@ -686,6 +703,8 @@ function getCostiStruttura(nomeStruttura, livello) {
 }
 
 module.exports = {
+    costiStruttura,
     lista,
-    getCostiStruttura
+    getCostiStruttura,
+    resouceID
 };
