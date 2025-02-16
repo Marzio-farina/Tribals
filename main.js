@@ -8,6 +8,8 @@ const { costiStruttura, getCostiStruttura, lista, resouceID} = require('./db');
 
 let winMain,winSide;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
+let url;
+let ultimoStruttureInCorso = {};
 
 function initialize() {
     const windows = createWindows();
@@ -22,7 +24,7 @@ function initialize() {
                 await waitForGameLoad(winMain);
                 const villaggio = "4477";
                 const struttura = "main";
-                const url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
+                url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
                 winMain.loadURL(url);
                 await UpFree(winMain, winSide, url);
                 setInterval(() => fetchResources(winMain), 2000);
@@ -107,12 +109,6 @@ ipcMain.handle("get-strutture", async (event) => {
                         struttureInCorso = {};
                         struttureInCoda = {};
                         let container = document.querySelector('#buildings');
-                        
-                        if (!container) {
-                            console.error('Elemento #buildings non trovato.');
-                            return { struttureInCorso, struttureInCoda };
-                        }
-
                         let rows = container.querySelectorAll('tbody > tr');
                         
                         rows.forEach(row => {
@@ -158,6 +154,12 @@ ipcMain.handle("get-strutture", async (event) => {
                                 struttureInCorso[nomeStrutturaInCorso].push(parseInt(livelloStrutturaInCorso, 10));
                             }
                         });
+                        if (Object.keys(struttureInCorso).length === 0) {
+                            console.log('Nessuna struttura in corso.');
+                            sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
+                            sessionStorage.setItem('struttureInCorso', JSON.stringify({}));
+                            return { struttureInCorso: {}, struttureInCoda };
+                        }
                         sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
                         sessionStorage.setItem('struttureInCorso', JSON.stringify(struttureInCorso));
                     } else if (url.includes('overview&intro')) {
@@ -214,8 +216,13 @@ ipcMain.handle("get-strutture", async (event) => {
                 });
             } else {
                 console.log(`Risorse insufficienti per avviare ${nome} livello ${livello}.`);
-            }
-        }
+            };
+        };
+
+        if (JSON.stringify(struttureInCorsoFinali) !== JSON.stringify(ultimoStruttureInCorso)) {
+            ultimoStruttureInCorso = struttureInCorsoFinali;
+            winMain.webContents.send('update-strutture-in-corso', struttureInCorsoFinali);
+        };
         return { struttureInCorso: struttureInCorsoFinali, struttureInCoda: struttureInCodaFinali };
     } catch (error) {
         console.error("Errore nel recupero dei livelli delle strutture:", error);
