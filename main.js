@@ -205,17 +205,19 @@ ipcMain.handle("get-strutture", async (event) => {
             let primaStruttura = struttureInCodaFinali[0];
             let { nome, livello } = primaStruttura;
 
-            if (risorseAttuali.legno >= costiStruttura[nome][livello - 1].legno &&
-                risorseAttuali.argilla >= costiStruttura[nome][livello - 1].argilla &&
-                risorseAttuali.ferro >= costiStruttura[nome][livello - 1].ferro) {
-                
-                winMain.loadURL(url);
-                winMain.webContents.once('did-finish-load', () => {
-                    upStruttureRisorse(winMain, risorseAttuali, resouceID[primaStruttura.nome]);
-                    struttureInCodaFinali = struttureInCodaFinali.slice(1);
-                });
-            } else {
-                console.log(`Risorse insufficienti per avviare ${nome} livello ${livello}.`);
+            if (risorseAttuali.legno != 'N/A' && risorseAttuali.argilla != 'N/A' && risorseAttuali.ferro != 'N/A') {
+                if (risorseAttuali.legno >= costiStruttura[nome][livello - 1].legno &&
+                    risorseAttuali.argilla >= costiStruttura[nome][livello - 1].argilla &&
+                    risorseAttuali.ferro >= costiStruttura[nome][livello - 1].ferro) {
+                    
+                    winMain.loadURL(url);
+                    winMain.webContents.once('did-finish-load', () => {
+                        upStruttureRisorse(winMain, risorseAttuali, resouceID[primaStruttura.nome]);
+                        struttureInCodaFinali = struttureInCodaFinali.slice(1);
+                    });
+                } else {
+                    console.log(`Risorse insufficienti per avviare ${nome} livello ${livello}.`);
+                };
             };
         };
 

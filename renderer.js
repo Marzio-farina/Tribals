@@ -1,16 +1,18 @@
 const { ipcRenderer } = require('electron');
 
 document.addEventListener('DOMContentLoaded', () => {
-    // if (window.__updateInterval) {
-    //     clearInterval(window.__updateInterval);
-    // };
     window.__delay = 0;
+    window.__lastUpdateTime = Date.now();
 
-    setInterval(() => {
+    if (window.__updateInterval) {
+        clearInterval(window.__updateInterval);
+    };
+
+    window.__updateInterval = setInterval(() => {
         ipcRenderer.invoke('get-strutture')
             .then(listaCoda)
             .catch(error => console.error("Errore aggiornamento strutture:", error));
-    }, 2000);
+    }, 3000);
 
     ipcRenderer.on('update-strutture-in-corso', (event, struttureInCorso) => {
         console.log("Strutture aggiornate:", struttureInCorso);
@@ -19,12 +21,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ipcRenderer.on('update-delay', (event, data) => {
         window.__delay = data.delay || 0;
+        window.__lastUpdateTime = Date.now();
         aggiornaDelayUI();
     });
 
     function aggiornaUIContinuamente() {
+        const now = Date.now();
+        const elapsedTime = now - window.__lastUpdateTime;
+        window.__lastUpdateTime = now;
+
         if (window.__delay > 0) {
-            window.__delay -= 1000;
+            window.__delay = Math.max(0, window.__delay - elapsedTime);
         } else {
             ipcRenderer.invoke('get-strutture')
                 .then(listaCoda)
@@ -32,8 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         aggiornaDelayUI();
         setTimeout(aggiornaUIContinuamente, 1000);
-    }    
-    // aggiornaUIContinuamente();
+    }
 });
 
 function formattaDelay(delay) {
