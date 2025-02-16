@@ -20,26 +20,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     ipcRenderer.on('update-delay', (event, data) => {
-        window.__delay = data.delay || 0;
-        window.__lastUpdateTime = Date.now();
+        console.log("Ricevuto update-delay:", data);
         aggiornaDelayUI();
+        calcolaDelayDopoRitardo(data.delay);
     });
 
-    function aggiornaUIContinuamente() {
-        const now = Date.now();
-        const elapsedTime = now - window.__lastUpdateTime;
-        window.__lastUpdateTime = now;
-
-        if (window.__delay > 0) {
-            window.__delay = Math.max(0, window.__delay - elapsedTime);
-        } else {
-            ipcRenderer.invoke('get-strutture')
-                .then(listaCoda)
-                .catch(error => console.error("Errore aggiornamento strutture:", error));
+    function calcolaDelayDopoRitardo(nuovoDelay) {
+        if (window.__delayCalcInterval) {
+            clearInterval(window.__delayCalcInterval);
         }
-        aggiornaDelayUI();
-        setTimeout(aggiornaUIContinuamente, 1000);
-    }
+
+        window.__delay = nuovoDelay;
+        window.__lastUpdateTime = Date.now();
+    
+        window.__delayCalcInterval = setInterval(() => {
+            let tempoRimanente = Math.max(0, Math.round((window.__delay / 1000) - (Date.now() - window.__lastUpdateTime) / 1000));
+
+            if (tempoRimanente <= 0) {
+                clearInterval(window.__delayCalcInterval);
+                window.__delay = 0;
+            }
+
+            aggiornaDelayUI();
+        }, 1000);
+    }    
 });
 
 function formattaDelay(delay) {
@@ -52,11 +56,27 @@ function formattaDelay(delay) {
 
 function aggiornaDelayUI() {
     const delayInfoElements = document.querySelectorAll('.delay-info span');
-    delayInfoElements.forEach(span => {
-        span.textContent = window.__delay > 0 
-            ? formattaDelay(Math.round(window.__delay / 1000))
-            : "Subito disponibile";
-    });
+    function aggiornaVisualizzazione() {
+        let tempoRimanente = Math.max(0, Math.round((window.__delay / 1000) - (Date.now() - window.__lastUpdateTime) / 1000));
+
+        delayInfoElements.forEach(span => {
+            span.textContent = tempoRimanente > 0 
+                ? formattaDelay(tempoRimanente) 
+                : "Subito disponibile";
+        });
+
+        if (tempoRimanente === 0) {
+            clearInterval(window.__delayInterval);
+            window.__delayInterval = null;
+        }
+    }
+
+    if (window.__delayInterval) {
+        clearInterval(window.__delayInterval);
+    }
+
+    window.__delayInterval = setInterval(aggiornaVisualizzazione, 1000);
+    aggiornaVisualizzazione();
 }
 
 function listaCoda(livelliStrutture) {

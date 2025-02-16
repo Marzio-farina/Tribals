@@ -13,60 +13,57 @@ function UpFree(winMain, winSide, url = null) {
 
                 if (delay > 0) {
                     setTimeout(() => {
+                        console.log("Carico la pagina:", url);
+                        winMain.loadURL(url);
+                    }, delay - 5000);
+                    setTimeout(() => {
                         let upFreeClick = document.querySelector('#buildqueue .lit.nodrag .lit-item .order_feature.btn.btn-btr.btn-instant-free');
                         if (upFreeClick && !hasClicked) {
                             hasClicked = true;
-                            upFreeClick.click();  // Aggiungi qui un ulteriore setTimeout per ritardare il click di 1 secondo
+                            upFreeClick.click();
                             console.log("Click eseguito su upFree!");
                         } else {
                             console.log("Elemento non trovato al momento del click.");
                         }
                     }, delay + 2000);
-                    setTimeout(() => {
-                        console.log("Carico la pagina:", url);
-                        winMain.loadURL(url);
-                    }, delay - 5000);
                 }
                 return { delay, message: "Attendo " + delay + " ms per il click." };
             } catch (err) {
                 return { delay: null, message: "Errore esecuzione: " + err.message };
             }
         })();
-    `).then(result => handleUpFreeResult(result, winSide, winMain, url))
-    .catch(err => handleUpFreeResult({ delay: null, message: "Errore esecuzione UpFree" }, winSide, winMain, url));
+    `).then(result => handleUpFreeResult(result, winSide, winMain))
+    .catch(err => handleUpFreeResult({ delay: null, message: "Errore esecuzione UpFree" }, winSide));
 };
 
-function handleUpFreeResult(result, winSide, winMain, url = null) {
+function handleUpFreeResult(result, winSide, winMain) {
     try {
         const { delay, message } = result;
         const remainingDelay = Number(delay) || 0;
-        winSide.webContents.send('update-delay', { delay: remainingDelay, message });
-        updateDelayUI(remainingDelay, winSide, winMain, url);
+        if (remainingDelay > 0) {
+            winSide.webContents.send('update-delay', { delay: remainingDelay, message });
+        } else {
+            setTimeout(() => {
+                winMain.webContents.executeJavaScript(`
+                    (function() {
+                        let upFree = document.querySelector('#buildqueue .lit.nodrag .lit-item .order_feature.btn.btn-btr.btn-instant-free');
+                        if (!upFree) return null;
+                        const dataAvailableFrom = parseInt(upFree.getAttribute('data-available-from')) * 1000;
+                        return dataAvailableFrom;
+                    })();
+                `).then(nuovoDelay => {
+                    const prossimoDelay = Number(nuovoDelay) || 0;
+                    winSide.webContents.send('update-delay', { delay: prossimoDelay, message: "Nuovo delay calcolato" });
+                }).catch(err => {
+                    console.error("Errore durante il recupero del nuovo delay:", err);
+                    winSide.webContents.send('update-delay', { delay: null, message: "Errore nel recupero del nuovo delay" });
+                });
+            }, 2000);
+        };
     } catch (err) {
         console.error("Errore nel parsing JSON di UpFree:", err);
         winSide.webContents.send('update-delay', { delay: null, message: "Errore esecuzione UpFree" });
     };
-};
-
-function updateDelayUI(remainingDelay, winSide, winMain, url = null) {
-    let lastUpdatedTime = Date.now();
-    function update() {
-        const now = Date.now();
-        const elapsedTime = now - lastUpdatedTime;
-        lastUpdatedTime = now;
-
-        if (remainingDelay > 5000) {
-            remainingDelay -= Math.min(elapsedTime, 1000);
-            winSide.webContents.send('update-delay', { delay: remainingDelay });
-            setTimeout(update, 1000);
-        } else if (remainingDelay > 1000) {
-            remainingDelay -= Math.min(elapsedTime, 1000);
-            setTimeout(update, 1000);
-        } else {
-            winSide.webContents.send('update-delay', { delay: 0, message: "Subito disponibile" });
-        };
-    };
-    update();
 };
 
 module.exports = { UpFree };
