@@ -14,14 +14,18 @@ function UpFree(winMain, winSide, url = null) {
                     setTimeout(() => {
                         let upFreeClick = document.querySelector('#buildqueue .lit.nodrag .lit-item .order_feature.btn.btn-btr.btn-instant-free');
                         if (upFreeClick) {
-                            upFreeClick.click();
-                            console.log("Click eseguito su upFree!");
+                            setTimeout(() => {
+                                upFreeClick.click();  // Aggiungi qui un ulteriore setTimeout per ritardare il click di 1 secondo
+                                console.log("Click eseguito su upFree!");
+                            }, 2000);
                         } else {
                             console.log("Elemento non trovato al momento del click.");
                         }
                     }, delay);
                 } else {
-                    upFree.click();
+                    setTimeout(() => {
+                        upFree.click();
+                    }, 2000);
                 }
                 return { delay, message: "Attendo " + delay + " ms per il click." };
             } catch (err) {
