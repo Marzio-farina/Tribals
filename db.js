@@ -351,6 +351,7 @@ const costiStruttura = {
 const lista = {
     struttura: [
         { nome: "Statua", livello: 1 },
+        { nome: "Raduno", livello: 1 },
         { nome: "Taglialegna", livello: 1 },
         { nome: "Pozzo di argilla", livello: 1 },
         { nome: "Miniera di ferro", livello: 1 },
@@ -662,8 +663,6 @@ const lista = {
         { nome: "Mura", livello: 18 },
         { nome: "Mura", livello: 19 },
         { nome: "Mura", livello: 20 },
-
-        
     ]
 };
 

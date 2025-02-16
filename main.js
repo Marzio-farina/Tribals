@@ -155,7 +155,6 @@ ipcMain.handle("get-strutture", async (event) => {
                             }
                         });
                         if (Object.keys(struttureInCorso).length === 0) {
-                            console.log('Nessuna struttura in corso.');
                             sessionStorage.setItem('struttureInCoda', JSON.stringify(struttureInCoda));
                             sessionStorage.setItem('struttureInCorso', JSON.stringify({}));
                             return { struttureInCorso: {}, struttureInCoda };

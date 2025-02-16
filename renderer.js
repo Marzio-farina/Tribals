@@ -72,7 +72,7 @@ function listaCoda(livelliStrutture) {
         containerAttivi.innerHTML = '';
     }
 
-    if (struttureInCoda.length > 0) {
+    if (struttureInCoda.length > 0 && !struttureInCoda.some(({ nome, livello }) => nome === "Raduno" && livello === 1)) {
         struttureInCoda.forEach(({ nome, livello }) => {
             const div = document.createElement("div");
             div.className = "m-3 border-bottom border-top border-secondary";
