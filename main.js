@@ -5,11 +5,17 @@ const { risorse } = require('./risorse');
 const { upStruttureRisorse } = require('./upStrutture');
 const { UpFree } = require('./instantUpStrutture');
 const { costiStruttura, getCostiStruttura, lista, resouceID} = require('./db');
+const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali } = require('./dbDinamico');
 
 let winMain,winSide;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
 let url;
 let ultimoStruttureInCorso = {};
+
+const db = inizializzaDB();
+if (Object.keys(db).length === 0) {
+    aggiungiMondo("91", datiIniziali);
+}
 
 function initialize() {
     const windows = createWindows();
