@@ -5,9 +5,9 @@ function createWindows() {
 
     //FINESTRA PRINCIPALE CON IL GIOCO
     const winMain = new BrowserWindow({
-        width: 1300,
+        width: 1295,
         height: 1000,
-        x: 0,
+        x: 450,
         y: 0,
         webPreferences: {
             nodeIntegration: false,
@@ -34,7 +34,7 @@ function createWindows() {
     const winSide = new BrowserWindow({
         width: 460,
         height: 1000,
-        x: 1290,
+        x: 0,
         y: 0,
         webPreferences: {
             nodeIntegration: true,

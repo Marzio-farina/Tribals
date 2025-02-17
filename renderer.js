@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ipcRenderer.invoke('get-strutture')
             .then(listaCoda)
             .catch(error => console.error("Errore aggiornamento strutture:", error));
-    }, 3000);
+    }, 1000);
 
     ipcRenderer.on('update-strutture-in-corso', (event, struttureInCorso) => {
         console.log("Strutture aggiornate:", struttureInCorso);
@@ -30,19 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(window.__delayCalcInterval);
         }
 
-        window.__delay = nuovoDelay;
-        window.__lastUpdateTime = Date.now();
-    
-        window.__delayCalcInterval = setInterval(() => {
-            let tempoRimanente = Math.max(0, Math.round((window.__delay / 1000) - (Date.now() - window.__lastUpdateTime) / 1000));
+        if (nuovoDelay > 0) {
+            window.__delay = nuovoDelay;
+            window.__lastUpdateTime = Date.now();
+        
+            window.__delayCalcInterval = setInterval(() => {
+                let tempoRimanente = Math.max(0, Math.round((window.__delay / 1000) - (Date.now() - window.__lastUpdateTime) / 1000));
 
-            if (tempoRimanente <= 0) {
-                clearInterval(window.__delayCalcInterval);
-                window.__delay = 0;
-            }
+                if (tempoRimanente <= 0) {
+                    clearInterval(window.__delayCalcInterval);
+                    window.__delay = 0;
+                }
 
-            aggiornaDelayUI();
-        }, 1000);
+                aggiornaDelayUI();
+            }, 1000);
+        }
     }    
 });
 
