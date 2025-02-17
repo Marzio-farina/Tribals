@@ -3,7 +3,9 @@ const createWindows = require('./windows');
 const { login, loginMondo91 } = require('./login');
 const { risorse } = require('./risorse');
 const { upStruttureRisorse } = require('./upStrutture');
+const { SbloccoRovistamento } = require('./rovistamenti');
 const { UpFree } = require('./instantUpStrutture');
+const path = require('path');
 const { costiStruttura, getCostiStruttura, lista, resouceID} = require('./db');
 const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali } = require('./dbDinamico');
 
@@ -11,11 +13,8 @@ let winMain,winSide;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
 let url;
 let ultimoStruttureInCorso = {};
-
-const db = inizializzaDB();
-if (Object.keys(db).length === 0) {
-    aggiungiMondo("91", datiIniziali);
-}
+let upRovistamentoLv1, funzioneRichiamata = false;
+let upRovistamentoLv2, funzioneRichiamata2 = false;
 
 function initialize() {
     const windows = createWindows();
@@ -96,7 +95,6 @@ function waitForGameLoad(winMain) {
 ipcMain.on('update-risorse', (event, risorse) => risorseAttuali = risorse);
 
 ipcMain.handle("get-strutture", async (event) => {
-    
     if (!lista || !lista.struttura) {
         console.error("Errore: db o db.lista è undefined!");
         return { struttureInCorso: {}, struttureInCoda: {} };
@@ -229,9 +227,53 @@ ipcMain.handle("get-strutture", async (event) => {
             ultimoStruttureInCorso = struttureInCorsoFinali;
             winMain.webContents.send('update-strutture-in-corso', struttureInCorsoFinali);
         };
+        
+        if (!struttureInCodaFinali.some(({ nome, livello }) => nome === "Raduno" && livello === 1)) {
+            if (leggiMondo("91").villaggi["villaggio1"].Rovistamento["Razziatore svogliato"] == false && 
+                risorseAttuali.legno > 25 && risorseAttuali.argilla > 30 && risorseAttuali.ferro > 25) {
+                struttureInCodaFinali.forEach(el => {
+                    if (el.nome == "Taglialegna" && !el.livello < 10) {
+                        upRovistamentoLv1 = true;
+                    };
+                });
+    
+                setTimeout(() => {
+                    if (upRovistamentoLv1 && !funzioneRichiamata) {
+                        funzioneRichiamata = true;
+                        SbloccoRovistamento(winMain, risorseAttuali, 0, "Razziatore svogliato");
+                    };
+                }, 10000);
+            }
+
+            if (leggiMondo("91").villaggi["villaggio1"].Rovistamento["Trasportatori Umili"] == false && 
+                risorseAttuali.legno > 250 && risorseAttuali.argilla > 300 && risorseAttuali.ferro > 250) {
+                struttureInCodaFinali.forEach(el => {
+                    if (el.nome == "Taglialegna" && !el.livello < 15) {
+                        upRovistamentoLv2 = true;
+                    };
+                });
+    
+                setTimeout(() => {
+                    if (upRovistamentoLv2 && !funzioneRichiamata2) {
+                        funzioneRichiamata2 = true;
+                        SbloccoRovistamento(winMain, risorseAttuali, 1, "Trasportatori Umili");
+                    };
+                }, 10000);
+            }
+        };        
         return { struttureInCorso: struttureInCorsoFinali, struttureInCoda: struttureInCodaFinali };
     } catch (error) {
         console.error("Errore nel recupero dei livelli delle strutture:", error);
         return { struttureInCorso: [], struttureInCoda: [] };
     }
 });
+
+// ipcMain.on('aggiornaRovistamento', (event, mondoId, villaggioId, nomeLv, nuovoValore) => {
+//     try {
+//       aggiornaRovistamentoValore(mondoId, villaggioId, nomeLv, nuovoValore);  // Aggiorna il valore nel DB
+//       event.reply('aggiornaRovistamento-risposta', 'Successo'); // Risponde al renderer
+//     } catch (error) {
+//       console.error("Errore nell'aggiornamento del DB:", error);
+//       event.reply('aggiornaRovistamento-risposta', 'Errore');
+//     }
+//   });

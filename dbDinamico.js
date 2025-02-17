@@ -1,10 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 
-// Percorso del file del database
 const dbPath = path.join(__dirname, 'database.json');
 
-// Struttura iniziale dei dati
 const datiIniziali = {
     "Mondi": {
         "91": {
@@ -29,18 +27,17 @@ const datiIniziali = {
                         "Catapulte": 0,
                         "Paladino": 0,
                         "Nobile": 0,
-                    }
+                    },
                 }
             }
         }
     }
 };
 
-// Funzione per leggere il file JSON
 function leggiDB() {
     try {
         if (!fs.existsSync(dbPath)) {
-            fs.writeFileSync(dbPath, JSON.stringify(datiIniziali, null, 2)); // Inizializza il file se non esiste
+            fs.writeFileSync(dbPath, JSON.stringify(datiIniziali, null, 2));
         }
         const data = fs.readFileSync(dbPath, 'utf-8');
         return JSON.parse(data) || {};
@@ -50,7 +47,6 @@ function leggiDB() {
     }
 }
 
-// Funzione per scrivere nel file JSON
 function scriviDB(dati) {
     try {
         fs.writeFileSync(dbPath, JSON.stringify(dati, null, 2));
@@ -74,7 +70,33 @@ function aggiungiMondo(id, dati) {
 // Funzione per leggere un mondo dal DB
 function leggiMondo(id) {
     const db = inizializzaDB();
-    return db[id] || null;
+    if (!db.Mondi || !db.Mondi[id]) {
+        console.error(`Errore: Il mondo ${id} non esiste nel database.`);
+        return null;
+    }
+    return db.Mondi[id];
 }
+
+// function aggiornaRovistamentoValore(mondoId, villaggioId, rovistamentoId, nuovoValore) {
+//     try {
+//         const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+//         const mondo = db.Mondi[mondoId];
+//         if (mondo) {
+//             const villaggio = mondo.villaggi[villaggioId];
+//             if (villaggio && villaggio.Rovistamento) {
+//                 villaggio.Rovistamento[rovistamentoId] = nuovoValore;
+//                 fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+//                 console.log('Database aggiornato correttamente!');
+//             } else {
+//                 console.error('Errore: Villaggio o Rovistamento non trovato');
+//             }
+//         } else {
+//             console.error('Errore: Mondo non trovato');
+//         }
+//     } catch (error) {
+//         console.error('Errore nella lettura/scrittura del DB:', error);
+//     }
+// }
+
 
 module.exports = { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali };
