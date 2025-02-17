@@ -106,7 +106,7 @@ function listaCoda(livelliStrutture) {
                     <div class="d-flex justify-content-center align-items-center">
                         <img src="./icone/${nome.toLowerCase().replace(/\s/g, '')}.png" 
                         alt="${nome}" style="max-width: 65px;">
-                    </div>                
+                    </div>
                     <div class="w-75">
                         <h5>${nome}</h5>
                         <h6>Lv. ${livello}</h6>
