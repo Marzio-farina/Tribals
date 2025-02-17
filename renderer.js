@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ipcRenderer.on('update-delay', (event, data) => {
         console.log("Ricevuto update-delay:", data);
+        window.__delay = data.delay;
+        window.__lastUpdateTime = Date.now();
         aggiornaDelayUI();
         calcolaDelayDopoRitardo(data.delay);
     });
@@ -39,10 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (tempoRimanente <= 0) {
                     clearInterval(window.__delayCalcInterval);
-                    window.__delay = 0;
+                    // window.__delay = 0;
                 }
 
-                aggiornaDelayUI();
+                // aggiornaDelayUI();
             }, 1000);
         }
     }    
@@ -60,14 +62,15 @@ function aggiornaDelayUI() {
     const delayInfoElements = document.querySelectorAll('.delay-info span');
     function aggiornaVisualizzazione() {
         let tempoRimanente = Math.max(0, Math.round((window.__delay / 1000) - (Date.now() - window.__lastUpdateTime) / 1000));
-
+        console.log("tempoRimanente : " + tempoRimanente);
+        
         delayInfoElements.forEach(span => {
             span.textContent = tempoRimanente > 0 
                 ? formattaDelay(tempoRimanente) 
                 : "Subito disponibile";
         });
 
-        if (tempoRimanente === 0) {
+        if (tempoRimanente == 0) {
             clearInterval(window.__delayInterval);
             window.__delayInterval = null;
         }
@@ -133,7 +136,7 @@ function listaCoda(livelliStrutture) {
                     </div>
                     ${!delaySpanCreated ? 
                         `<div class="d-flex align-items-end mb-1 delay-info" style="width: 75px">
-                            <span>${window.__delay > 0 ? `${Math.round(window.__delay / 1000)} s` : "in corso"}</span>
+                            <span style="font-weight: bold;">${window.__delay > 0 ? `${Math.round(window.__delay / 1000)} s` : "in corso"}</span>
                         </div>` 
                         : ''}
                 </div>

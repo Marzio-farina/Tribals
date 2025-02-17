@@ -15,7 +15,7 @@ function initialize() {
     const windows = createWindows();
     winMain = windows.winMain;
     winSide = windows.winSide;
-
+    // winSide.webContents.openDevTools();
     winMain.webContents.once('did-finish-load', async () => {
         setTimeout(async () => {
             try {

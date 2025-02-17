@@ -61,6 +61,7 @@ function handleUpFreeResult(result, winSide, winMain) {
     try {
         const { delay, message } = result;
         const remainingDelay = Number(delay) || 0;
+        console.log("remainingDelay: " + remainingDelay);
         if (remainingDelay > 0) {
             winSide.webContents.send('update-delay', { delay: remainingDelay, message });
         } else {
@@ -75,19 +76,19 @@ function handleUpFreeResult(result, winSide, winMain) {
                     })();
                 `).then(nuovoDelay => {
                     const prossimoDelay = Number(nuovoDelay) || 0;
+                    console.log("prossimoDelay" + prossimoDelay);
+                    
                     winSide.webContents.send('update-delay', { delay: prossimoDelay, message: "Nuovo delay calcolato" });
                     if (prossimoDelay > 0) {
                         UpFree(winMain, winSide, url);
                     }
                 }).catch(err => {
                     console.error("Errore durante il recupero del nuovo delay:", err);
-                    winSide.webContents.send('update-delay', { delay: null, message: "Errore nel recupero del nuovo delay" });
                 });
             }, 2000);
         };
     } catch (err) {
         console.error("Errore nel parsing JSON di UpFree:", err);
-        winSide.webContents.send('update-delay', { delay: null, message: "Errore esecuzione UpFree" });
     };
 };
 
