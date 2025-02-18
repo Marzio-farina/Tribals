@@ -77,26 +77,4 @@ function leggiMondo(id) {
     return db.Mondi[id];
 }
 
-// function aggiornaRovistamentoValore(mondoId, villaggioId, rovistamentoId, nuovoValore) {
-//     try {
-//         const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-//         const mondo = db.Mondi[mondoId];
-//         if (mondo) {
-//             const villaggio = mondo.villaggi[villaggioId];
-//             if (villaggio && villaggio.Rovistamento) {
-//                 villaggio.Rovistamento[rovistamentoId] = nuovoValore;
-//                 fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
-//                 console.log('Database aggiornato correttamente!');
-//             } else {
-//                 console.error('Errore: Villaggio o Rovistamento non trovato');
-//             }
-//         } else {
-//             console.error('Errore: Mondo non trovato');
-//         }
-//     } catch (error) {
-//         console.error('Errore nella lettura/scrittura del DB:', error);
-//     }
-// }
-
-
-module.exports = { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali };
+module.exports = { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali, scriviDB };

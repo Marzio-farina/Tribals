@@ -7,14 +7,13 @@ const { SbloccoRovistamento } = require('./rovistamenti');
 const { UpFree } = require('./instantUpStrutture');
 const path = require('path');
 const { costiStruttura, getCostiStruttura, lista, resouceID} = require('./db');
-const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali } = require('./dbDinamico');
+const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali, scriviDB } = require('./dbDinamico');
 
 let winMain,winSide;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
 let url;
 let ultimoStruttureInCorso = {};
-let upRovistamentoLv1, funzioneRichiamata = false;
-let upRovistamentoLv2, funzioneRichiamata2 = false;
+let rovistamentiEseguiti = {};
 
 function initialize() {
     const windows = createWindows();
@@ -229,36 +228,17 @@ ipcMain.handle("get-strutture", async (event) => {
         };
         
         if (!struttureInCodaFinali.some(({ nome, livello }) => nome === "Raduno" && livello === 1)) {
-            if (leggiMondo("91").villaggi["villaggio1"].Rovistamento["Razziatore svogliato"] == false && 
-                risorseAttuali.legno > 25 && risorseAttuali.argilla > 30 && risorseAttuali.ferro > 25) {
-                struttureInCodaFinali.forEach(el => {
-                    if (el.nome == "Taglialegna" && !el.livello < 10) {
-                        upRovistamentoLv1 = true;
-                    };
-                });
-    
-                setTimeout(() => {
-                    if (upRovistamentoLv1 && !funzioneRichiamata) {
-                        funzioneRichiamata = true;
-                        SbloccoRovistamento(winMain, risorseAttuali, 0, "Razziatore svogliato");
-                    };
-                }, 10000);
+            if (leggiMondo("91").villaggi["villaggio1"].Rovistamento["Razziatore svogliato"] === false) {
+                verificaERichiamaRovistamento("Razziatore svogliato", 0, { legno: 25, argilla: 30, ferro: 25 }, 10, struttureInCodaFinali);
             }
-
-            if (leggiMondo("91").villaggi["villaggio1"].Rovistamento["Trasportatori Umili"] == false && 
-                risorseAttuali.legno > 250 && risorseAttuali.argilla > 300 && risorseAttuali.ferro > 250) {
-                struttureInCodaFinali.forEach(el => {
-                    if (el.nome == "Taglialegna" && !el.livello < 15) {
-                        upRovistamentoLv2 = true;
-                    };
-                });
-    
-                setTimeout(() => {
-                    if (upRovistamentoLv2 && !funzioneRichiamata2) {
-                        funzioneRichiamata2 = true;
-                        SbloccoRovistamento(winMain, risorseAttuali, 1, "Trasportatori Umili");
-                    };
-                }, 10000);
+            if (leggiMondo("91").villaggi["villaggio1"].Rovistamento["Trasportatori Umili"] === false) {
+                verificaERichiamaRovistamento("Trasportatori Umili", 1, { legno: 250, argilla: 300, ferro: 250 }, 15, struttureInCodaFinali);
+            }
+            if (leggiMondo("91").villaggi["villaggio1"].Rovistamento["Rovistamento astuto"] === false) {
+                verificaERichiamaRovistamento("Rovistamento astuto", 2, { legno: 1000, argilla: 1200, ferro: 1000 }, 20, struttureInCodaFinali);
+            }
+            if (leggiMondo("91").villaggi["villaggio1"].Rovistamento["Ottimi Raccoglitori"] === false) {
+                verificaERichiamaRovistamento("Ottimi Raccoglitori", 3, { legno: 10000, argilla: 12000, ferro: 10000 }, 23, struttureInCodaFinali);
             }
         };        
         return { struttureInCorso: struttureInCorsoFinali, struttureInCoda: struttureInCodaFinali };
@@ -268,12 +248,48 @@ ipcMain.handle("get-strutture", async (event) => {
     }
 });
 
-// ipcMain.on('aggiornaRovistamento', (event, mondoId, villaggioId, nomeLv, nuovoValore) => {
-//     try {
-//       aggiornaRovistamentoValore(mondoId, villaggioId, nomeLv, nuovoValore);  // Aggiorna il valore nel DB
-//       event.reply('aggiornaRovistamento-risposta', 'Successo'); // Risponde al renderer
-//     } catch (error) {
-//       console.error("Errore nell'aggiornamento del DB:", error);
-//       event.reply('aggiornaRovistamento-risposta', 'Errore');
-//     }
-//   });
+function aggiornaRovistamento(mondoId, villaggioId, rovistamentoId) {
+    const db = inizializzaDB();
+
+    if (db.Mondi && db.Mondi[mondoId] &&
+        db.Mondi[mondoId].villaggi && db.Mondi[mondoId].villaggi[villaggioId] &&
+        db.Mondi[mondoId].villaggi[villaggioId].Rovistamento &&
+        db.Mondi[mondoId].villaggi[villaggioId].Rovistamento.hasOwnProperty(rovistamentoId)) {
+
+        if (db.Mondi[mondoId].villaggi[villaggioId].Rovistamento[rovistamentoId] === true) {
+            console.log(`"${rovistamentoId}" è già stato aggiornato, nessuna modifica necessaria.`);
+            return;
+        }
+        
+        db.Mondi[mondoId].villaggi[villaggioId].Rovistamento[rovistamentoId] = true;
+        scriviDB(db);
+        console.log(`Il valore di "${rovistamentoId}" è stato aggiornato a true!`);
+    } else {
+        console.error("Errore: Dati non trovati nel database.");
+    }
+}
+
+function verificaERichiamaRovistamento(nomeRovistamento, indice, requisiti, livelloMinimo, struttureInCodaFinali) {
+    if (risorseAttuali.legno > requisiti.legno && risorseAttuali.argilla > requisiti.argilla && risorseAttuali.ferro > requisiti.ferro) {
+        console.log("nomeRovistamento :" + nomeRovistamento + " , indice :" + indice + " , requisiti :" + requisiti + " , livelloMinimo :" + livelloMinimo);
+        
+        if (rovistamentiEseguiti[nomeRovistamento]) {
+            console.log(`"${nomeRovistamento}" è già stato eseguito, non richiamare di nuovo.`);
+            return;
+        }
+
+        leggiMondo("91").villaggi["villaggio1"].Rovistamento[nomeRovistamento] === true;
+        let upRovistamento = struttureInCodaFinali.filter(el => el.nome === "Taglialegna").every(el => el.livello >= livelloMinimo);
+
+        if (!upRovistamento) {
+            console.log("Sono qui");
+            rovistamentiEseguiti[nomeRovistamento] = true;
+            setTimeout(() => {
+                SbloccoRovistamento(winMain, risorseAttuali, indice, nomeRovistamento);
+                aggiornaRovistamento("91", "villaggio1", nomeRovistamento);
+            }, 10000);
+        } else {
+            console.log("Le strutture sono pronte, ma il rovistamento è già stato eseguito.");
+        }
+    }
+}
