@@ -68,15 +68,11 @@ async function calcoloUnitNelVillaggio(win, mondoId, villaggioId) {
 }
 
 function calcolaTruppeNelVillaggio(villaggioId) {
-    // Leggi i dati dal DB
-    const mondo = leggiMondo("91");  // Assumiamo che il mondo sia "91"
+    const mondo = leggiMondo("91");
     const villaggio = mondo.villaggi[villaggioId];
-
-    // Elenco delle truppe da escludere
     const truppeDaEscludere = ["Esploratore", "Arieti", "Catapulte", "Paladino", "Nobile"];
-
-    // Somma delle truppe escludendo quelle specifiche
     let totaleTruppe = 0;
+    
     for (const truppa in villaggio.Truppe) {
         if (!truppeDaEscludere.includes(truppa)) {
             totaleTruppe += villaggio.Truppe[truppa];
