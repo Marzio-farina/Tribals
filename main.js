@@ -8,6 +8,7 @@ const { UpFree } = require('./instantUpStrutture');
 const path = require('path');
 const { costiStruttura, getCostiStruttura, lista, resouceID} = require('./db');
 const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali, scriviDB } = require('./dbDinamico');
+const { calcoloUnit } = require('./unit');
 
 let winMain,winSide;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
@@ -25,6 +26,7 @@ function initialize() {
                 await login(winMain);
                 await loginMondo91(winMain);
                 await waitForGameLoad(winMain);
+                await calcoloUnit(winMain,"91","villaggio1");
                 const villaggio = "4477";
                 const struttura = "main";
                 url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;

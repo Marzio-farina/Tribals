@@ -685,6 +685,15 @@ const resouceID = {
     "Accademia": "", //Attualmente assente
 }
 
+const unitDetails = [
+    { nome: "Lanciere", bottino: 25},
+    { nome: "Spadaccino", bottino: 15},
+    { nome: "Guerriero con ascia", bottino: 10},
+    { nome: "Cavalleria leggera", bottino: 80},
+    { nome: "Cavalleria pesante", bottino: 50},
+    { nome: "Paladino", bottino: 100},
+];
+
 function getCostiStruttura(nomeStruttura, livello) {
     const struttura = costiStruttura[nomeStruttura];
     if (!struttura) {
