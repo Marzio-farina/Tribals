@@ -1,7 +1,8 @@
 const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali,aggiornaRovistamentoValore } = require('./dbDinamico');
+const { calcolaTruppeNelVillaggio } = require('./unit');
 const { ipcRenderer } = require('electron');
 
-function SbloccoRovistamento (win,{ legno, argilla, ferro }, lv, nomeLv){
+function SbloccoRovistamento (win, lv, nomeLv){
     url = `https://it91.tribals.it/game.php?village=4477&screen=place&mode=scavenge`;
     win.loadURL(url);
     setTimeout(() => {
@@ -46,4 +47,9 @@ function SbloccoRovistamento (win,{ legno, argilla, ferro }, lv, nomeLv){
     }, 3000);
 }
 
-module.exports = { SbloccoRovistamento };
+function rovista (win){
+    const totale = calcolaTruppeNelVillaggio("villaggio1");
+    console.log("Totale truppe nel villaggio (escludendo esploratori, arieti, catapulte, paladino e nobili):", totale);
+}
+
+module.exports = { SbloccoRovistamento, rovista };

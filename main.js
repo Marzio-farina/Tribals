@@ -3,14 +3,14 @@ const createWindows = require('./windows');
 const { login, loginMondo91 } = require('./login');
 const { risorse } = require('./risorse');
 const { upStruttureRisorse } = require('./upStrutture');
-const { SbloccoRovistamento } = require('./rovistamenti');
+const { SbloccoRovistamento, rovista } = require('./rovistamenti');
 const { UpFree } = require('./instantUpStrutture');
 const path = require('path');
-const { costiStruttura, getCostiStruttura, lista, resouceID} = require('./db');
+const { costiStruttura, getCostiStruttura, lista, resouceID } = require('./db');
 const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali, scriviDB } = require('./dbDinamico');
-const { calcoloUnit } = require('./unit');
+const { calcoloUnitNelVillaggio, calcolaTruppeNelVillaggio } = require('./unit');
 
-let winMain,winSide;
+let winMain, winSide, winRovisto;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
 let url;
 let ultimoStruttureInCorso = {};
@@ -20,19 +20,24 @@ function initialize() {
     const windows = createWindows();
     winMain = windows.winMain;
     winSide = windows.winSide;
+    winRovisto = windows.winRovisto;
     winMain.webContents.once('did-finish-load', async () => {
         setTimeout(async () => {
             try {
                 await login(winMain);
                 await loginMondo91(winMain);
                 await waitForGameLoad(winMain);
-                await calcoloUnit(winMain,"91","villaggio1");
+                await calcoloUnitNelVillaggio(winMain,"91","villaggio1");
                 const villaggio = "4477";
                 const struttura = "main";
                 url = `https://it91.tribals.it/game.php?village=${villaggio}&screen=${struttura}`;
                 winMain.loadURL(url);
                 await UpFree(winMain, winSide, url);
                 setInterval(() => fetchResources(winMain), 2000);
+                setTimeout(() => {
+                    winRovisto.loadURL('https://it91.tribals.it/game.php?village=4477&screen=place&mode=scavenge');
+                }, 15000);
+                setInterval(() => rovista(winRovisto), 30000);
             } catch (error) {
                 console.error("Errore durante il flusso:", error);
             }            
@@ -287,7 +292,7 @@ function verificaERichiamaRovistamento(nomeRovistamento, indice, requisiti, live
             console.log("Sono qui");
             rovistamentiEseguiti[nomeRovistamento] = true;
             setTimeout(() => {
-                SbloccoRovistamento(winMain, risorseAttuali, indice, nomeRovistamento);
+                SbloccoRovistamento(winRovisto, indice, nomeRovistamento);
                 aggiornaRovistamento("91", "villaggio1", nomeRovistamento);
             }, 10000);
         } else {

@@ -48,7 +48,24 @@ function createWindows() {
     winSide.webContents.once('did-fail-load', (event, errorCode, errorDescription) => {
         console.error(`Errore nel caricamento della finestra laterale: ${errorDescription} (Codice errore: ${errorCode})`);
     });
-    return { winMain, winSide };
+
+    //FINESTRA PER IL ROVISTAMENTO
+    const winRovisto = new BrowserWindow({
+        width: 200,
+        height: 200,
+        x: 50,
+        y: 50,
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+        },
+    });
+
+    winRovisto.on('closed', () => {
+        winRovisto = null;
+    });
+
+    return { winMain, winSide, winRovisto };
 }
 
 module.exports = createWindows;
