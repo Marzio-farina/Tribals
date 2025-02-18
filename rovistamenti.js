@@ -48,8 +48,76 @@ function SbloccoRovistamento (win, lv, nomeLv){
 }
 
 function rovista (win){
-    const totale = calcolaTruppeNelVillaggio("villaggio1");
-    console.log("Totale truppe nel villaggio (escludendo esploratori, arieti, catapulte, paladino e nobili):", totale);
+    const truppeAttualeNelVillaggio = calcolaTruppeNelVillaggio("villaggio1");
+    win.loadURL('https://it91.tribals.it/game.php?village=4477&screen=place&mode=scavenge');
+
+    if (truppeAttualeNelVillaggio < 500) {
+        rovistaPocheTruppe(win);
+    }
+}
+
+function rovistaPocheTruppe(win) {
+    setTimeout(() => {
+        win.webContents.executeJavaScript(`
+            (function() {
+                const ContenitoreRovistamenti = document.querySelector('#scavenge_screen');
+                const ContenitoreTruppeDaInviare = ContenitoreRovistamenti.querySelectorAll('.scavenge-screen-main-widget .candidate-squad-container .candidate-squad-widget.vis tbody tr td');
+                const truppeConInput = Array.from(ContenitoreTruppeDaInviare).filter(el => 
+                    el.querySelector('.unitsInput.input-nicer')
+                );
+                const unitData = {};
+
+                const db = ${JSON.stringify(leggiMondo("91").villaggi.villaggio1.Truppe)};
+                truppeConInput.forEach(el => {
+                    let unitInput = el.querySelector('.unitsInput.input-nicer');
+                    if (unitInput) {
+                        let tipoUnit = unitInput.getAttribute('name')?.trim();
+                        let valoreUnit;
+
+                        switch (tipoUnit) {
+                            case "spear":
+                                valoreUnit = db["Lanciere"] || 0;
+                                unitInput.value = valoreUnit
+                                break;
+                            case "sword":
+                                valoreUnit = db["Spadaccino"] || 0;
+                                unitInput.value = valoreUnit
+                                break;
+                            case "axe":
+                                valoreUnit = db["Guerriero con ascia"] || 0;
+                                unitInput.value = valoreUnit
+                                break;
+                            case "light":
+                                valoreUnit = db["Cavalleria leggera"] || 0;
+                                unitInput.value = valoreUnit
+                                break;
+                            case "heavy":
+                                valoreUnit = db["Cavalleria pesante"] || 0;
+                                unitInput.value = valoreUnit
+                                break;
+                            default:
+                                console.warn("Unità sconosciuta:", tipoUnit);
+                        }
+                    } else {
+                        console.warn("Elemento .unitsInput.input-nicer non trovato in", el);
+                    }
+                });
+                
+                console.log("Unità da inviare:", unitData);
+
+                const rovistamenti = ContenitoreRovistamenti.querySelectorAll('.scavenge-screen-main-widget .options-container .scavenge-option.border-frame-gold-red');
+                const rovistamentiValidi = Array.from(rovistamenti).filter(rovistamento => 
+                    rovistamento.querySelector('.status-specific .inactive-view .action-container .btn.btn-default.free_send_button')
+                );
+                const rovistamentoEsatto = rovistamentiValidi[rovistamentiValidi.length - 1];
+                console.log("Ultimo rovistamento trovato:", rovistamentoEsatto);
+                rovistamentoEsatto.click();
+            })();
+        `, true).catch(error => {
+            console.error("Errore nell'esecuzione del JavaScript:", error);
+            console.error("Dettagli dell'errore:", error.stack); // Mostra stack trace dell'errore
+        });
+    }, 1000);
 }
 
 module.exports = { SbloccoRovistamento, rovista };
