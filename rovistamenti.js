@@ -65,53 +65,80 @@ function rovistaPocheTruppe(win) {
                 const truppeConInput = Array.from(ContenitoreTruppeDaInviare).filter(el => 
                     el.querySelector('.unitsInput.input-nicer')
                 );
-                const unitData = {};
 
-                const db = ${JSON.stringify(leggiMondo("91").villaggi.villaggio1.Truppe)};
                 truppeConInput.forEach(el => {
                     let unitInput = el.querySelector('.unitsInput.input-nicer');
+                    let linkUnit = el.querySelector('.units-entry-all.squad-village-required');
                     if (unitInput) {
                         let tipoUnit = unitInput.getAttribute('name')?.trim();
-                        let valoreUnit;
+                        console.log("Unità trovata:", tipoUnit);
+                        
+                    //     switch (tipoUnit) {
+                    //         case "spear":
+                    //             linkUnit.click();
+                    //         break;
+                    //         case "sword":
+                    //             linkUnit.click();
+                    //         break;
+                    //         case "axe":
+                    //             linkUnit.click();
+                    //             break;
+                    //         case "light":
+                    //             linkUnit.click();
+                    //         break;
+                    //         case "heavy":
+                    //             linkUnit.click();
+                    //         break;
+                    //         default:
+                    //             console.warn("Unità sconosciuta:", tipoUnit);
+                    //     }
+                    // } else {
+                    //     console.warn("Elemento .unitsInput.input-nicer non trovato in", el);
+                    // }
 
-                        switch (tipoUnit) {
-                            case "spear":
-                                valoreUnit = db["Lanciere"] || 0;
-                                unitInput.value = valoreUnit
-                                break;
-                            case "sword":
-                                valoreUnit = db["Spadaccino"] || 0;
-                                unitInput.value = valoreUnit
-                                break;
-                            case "axe":
-                                valoreUnit = db["Guerriero con ascia"] || 0;
-                                unitInput.value = valoreUnit
-                                break;
-                            case "light":
-                                valoreUnit = db["Cavalleria leggera"] || 0;
-                                unitInput.value = valoreUnit
-                                break;
-                            case "heavy":
-                                valoreUnit = db["Cavalleria pesante"] || 0;
-                                unitInput.value = valoreUnit
-                                break;
-                            default:
-                                console.warn("Unità sconosciuta:", tipoUnit);
+                        if (!linkUnit.disabled && linkUnit.offsetParent !== null) {
+                            switch (tipoUnit) {
+                                case "spear":
+                                case "sword":
+                                case "axe":
+                                case "light":
+                                case "heavy":
+                                    const event = new MouseEvent('click', {
+                                        bubbles: true,
+                                        cancelable: true,
+                                        view: window
+                                    });
+                                    linkUnit.dispatchEvent(event);
+                                    console.log("Cliccato su:", tipoUnit);
+                                    break;
+                                default:
+                                    console.warn("Unità sconosciuta:", tipoUnit);
+                            }
+                        } else {
+                            console.warn("Bottone non cliccabile o nascosto per:", tipoUnit);
                         }
-                    } else {
-                        console.warn("Elemento .unitsInput.input-nicer non trovato in", el);
                     }
                 });
-                
-                console.log("Unità da inviare:", unitData);
 
                 const rovistamenti = ContenitoreRovistamenti.querySelectorAll('.scavenge-screen-main-widget .options-container .scavenge-option.border-frame-gold-red');
                 const rovistamentiValidi = Array.from(rovistamenti).filter(rovistamento => 
                     rovistamento.querySelector('.status-specific .inactive-view .action-container .btn.btn-default.free_send_button')
                 );
-                const rovistamentoEsatto = rovistamentiValidi[rovistamentiValidi.length - 1];
-                console.log("Ultimo rovistamento trovato:", rovistamentoEsatto);
-                rovistamentoEsatto.click();
+                if (rovistamentiValidi.length > 0) {
+                    const rovistamentoEsatto = rovistamentiValidi[rovistamentiValidi.length - 1];
+                    console.log("Ultimo rovistamento trovato:", rovistamentoEsatto);
+                    const startRovistamento = rovistamentoEsatto.querySelector('.status-specific .inactive-view .action-container .btn.btn-default.free_send_button');
+                    setTimeout(() => {
+                        if (startRovistamento.offsetParent !== null) {  // Controlla che sia visibile
+                            startRovistamento.click();  // Click più "umano"
+                            console.log("Click finale eseguito con successo!");
+                        } else {
+                            console.warn("Elemento non visibile o cliccabile.");
+                        }
+                    }, 2000);
+                } else {
+                    console.warn("Nessun rovistamento valido trovato.");
+                }
             })();
         `, true).catch(error => {
             console.error("Errore nell'esecuzione del JavaScript:", error);
