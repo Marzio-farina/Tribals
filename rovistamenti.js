@@ -31,7 +31,6 @@ function SbloccoRovistamento (win, lv, nomeLv){
                         const uplv = document.querySelector('#popup_box_unlock-option-' + (${lv + 1}) + ' .popup_box_content .scavenge-option-unlock-dialog .btn.btn-default');
                         if (uplv) {
                             uplv.click();
-                            console.log("Click su uplv riuscito!");
                         } else {
                             console.error("Bottone uplv non trovato.");
                         }
@@ -42,7 +41,7 @@ function SbloccoRovistamento (win, lv, nomeLv){
             })();
         `, true).catch(error => {
             console.error("Errore nell'esecuzione del JavaScript:", error);
-            console.error("Dettagli dell'errore:", error.stack); // Mostra stack trace dell'errore
+            console.error("Dettagli dell'errore:", error.stack);
         });
     }, 3000);
 }
