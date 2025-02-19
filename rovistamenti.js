@@ -71,30 +71,6 @@ function rovistaPocheTruppe(win) {
                     let linkUnit = el.querySelector('.units-entry-all.squad-village-required');
                     if (unitInput) {
                         let tipoUnit = unitInput.getAttribute('name')?.trim();
-                        console.log("Unità trovata:", tipoUnit);
-                        
-                    //     switch (tipoUnit) {
-                    //         case "spear":
-                    //             linkUnit.click();
-                    //         break;
-                    //         case "sword":
-                    //             linkUnit.click();
-                    //         break;
-                    //         case "axe":
-                    //             linkUnit.click();
-                    //             break;
-                    //         case "light":
-                    //             linkUnit.click();
-                    //         break;
-                    //         case "heavy":
-                    //             linkUnit.click();
-                    //         break;
-                    //         default:
-                    //             console.warn("Unità sconosciuta:", tipoUnit);
-                    //     }
-                    // } else {
-                    //     console.warn("Elemento .unitsInput.input-nicer non trovato in", el);
-                    // }
 
                         if (!linkUnit.disabled && linkUnit.offsetParent !== null) {
                             switch (tipoUnit) {
@@ -109,7 +85,6 @@ function rovistaPocheTruppe(win) {
                                         view: window
                                     });
                                     linkUnit.dispatchEvent(event);
-                                    console.log("Cliccato su:", tipoUnit);
                                     break;
                                 default:
                                     console.warn("Unità sconosciuta:", tipoUnit);
@@ -126,12 +101,10 @@ function rovistaPocheTruppe(win) {
                 );
                 if (rovistamentiValidi.length > 0) {
                     const rovistamentoEsatto = rovistamentiValidi[rovistamentiValidi.length - 1];
-                    console.log("Ultimo rovistamento trovato:", rovistamentoEsatto);
                     const startRovistamento = rovistamentoEsatto.querySelector('.status-specific .inactive-view .action-container .btn.btn-default.free_send_button');
                     setTimeout(() => {
-                        if (startRovistamento.offsetParent !== null) {  // Controlla che sia visibile
-                            startRovistamento.click();  // Click più "umano"
-                            console.log("Click finale eseguito con successo!");
+                        if (startRovistamento.offsetParent !== null) {
+                            startRovistamento.click();
                         } else {
                             console.warn("Elemento non visibile o cliccabile.");
                         }
@@ -142,7 +115,7 @@ function rovistaPocheTruppe(win) {
             })();
         `, true).catch(error => {
             console.error("Errore nell'esecuzione del JavaScript:", error);
-            console.error("Dettagli dell'errore:", error.stack); // Mostra stack trace dell'errore
+            console.error("Dettagli dell'errore:", error.stack);
         });
     }, 1000);
 }
