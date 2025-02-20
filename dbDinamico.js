@@ -1,6 +1,5 @@
 const path = require('path');
 const fs = require('fs');
-
 const dbPath = path.join(__dirname, 'database.json');
 
 const datiIniziali = {

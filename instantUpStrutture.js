@@ -13,7 +13,7 @@ function UpFree(winMain, winSide, url = null) {
                 if (delay > 0) {
                     return delay;
                 } else {
-                        throw new Error("Delay negativo o troppo basso.");
+                    throw new Error("Delay negativo o troppo basso.");
                 }
             } catch (err) {
                 return { delay: null, message: "Errore esecuzione: " + err.message };
@@ -25,7 +25,6 @@ function UpFree(winMain, winSide, url = null) {
 
             if (delay > 7000 && url) {
                 setTimeout(() => {
-                    console.log("Carico la pagina:", url);
                     winMain.loadURL(url);
                 }, delay - 7000);
             } else {
@@ -39,9 +38,6 @@ function UpFree(winMain, winSide, url = null) {
                             let upFreeClick = document.querySelector('#buildqueue .lit.nodrag .lit-item .order_feature.btn.btn-btr.btn-instant-free');
                             if (upFreeClick) {
                                 upFreeClick.click();
-                                console.log("Click eseguito su upFree!");
-                            } else {
-                                console.log("Elemento non trovato al momento del click.");
                             }
                         })();
                     `);
@@ -61,7 +57,6 @@ function handleUpFreeResult(result, winSide, winMain) {
     try {
         const { delay, message } = result;
         const remainingDelay = Number(delay) || 0;
-        console.log("remainingDelay: " + remainingDelay);
         if (remainingDelay > 0) {
             winSide.webContents.send('update-delay', { delay: remainingDelay, message });
         } else {
@@ -71,13 +66,10 @@ function handleUpFreeResult(result, winSide, winMain) {
                         let upFree = document.querySelector('#buildqueue .lit.nodrag .lit-item .order_feature.btn.btn-btr.btn-instant-free');
                         if (!upFree) return null;
                         const dataAvailableFrom = parseInt(upFree.getAttribute('data-available-from')) * 1000;
-                        console.log("Nuovo delay calcolato:", dataAvailableFrom, "Current Time:", Date.now());
                         return dataAvailableFrom - Date.now() + 7000;
                     })();
                 `).then(nuovoDelay => {
                     const prossimoDelay = Number(nuovoDelay) || 0;
-                    console.log("prossimoDelay" + prossimoDelay);
-                    
                     winSide.webContents.send('update-delay', { delay: prossimoDelay, message: "Nuovo delay calcolato" });
                     if (prossimoDelay > 0) {
                         UpFree(winMain, winSide, url);

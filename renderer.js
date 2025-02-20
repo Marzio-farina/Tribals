@@ -15,12 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
 
     ipcRenderer.on('update-strutture-in-corso', (event, struttureInCorso) => {
-        console.log("Strutture aggiornate:", struttureInCorso);
         aggiornaDelayUI();
     });
 
     ipcRenderer.on('update-delay', (event, data) => {
-        console.log("Ricevuto update-delay:", data);
         window.__delay = data.delay;
         window.__lastUpdateTime = Date.now();
         aggiornaDelayUI();
@@ -41,10 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (tempoRimanente <= 0) {
                     clearInterval(window.__delayCalcInterval);
-                    // window.__delay = 0;
                 }
-
-                // aggiornaDelayUI();
             }, 1000);
         }
     }    
@@ -62,7 +57,6 @@ function aggiornaDelayUI() {
     const delayInfoElements = document.querySelectorAll('.delay-info span');
     function aggiornaVisualizzazione() {
         let tempoRimanente = Math.max(0, Math.round((window.__delay / 1000) - (Date.now() - window.__lastUpdateTime) / 1000));
-        console.log("tempoRimanente : " + tempoRimanente);
         
         delayInfoElements.forEach(span => {
             span.textContent = tempoRimanente > 0 
@@ -115,8 +109,6 @@ function listaCoda(livelliStrutture) {
             `;
             containerInCoda.appendChild(div);
         });
-    } else {
-        console.log("Nessuna struttura in coda.");
     }
 
     if (struttureInCorso.length > 0) {
@@ -147,7 +139,5 @@ function listaCoda(livelliStrutture) {
             }
         });
         aggiornaDelayUI();
-    } else {
-        console.log("Nessuna struttura in corso.");
     }
 }

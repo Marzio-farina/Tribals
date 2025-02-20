@@ -3,20 +3,18 @@ const { calcolaTruppeNelVillaggio, calcoloUnitNelVillaggio } = require('./unit')
 const { ipcRenderer, ipcMain } = require('electron');
 
 let intervallo = 30000;
+let fineIntervallo;
 
 async function avviaRovistamento(win) {
-
     ipcMain.removeAllListeners('millisecondi-calcolati');
     ipcMain.on('millisecondi-calcolati', (event, millisecondi) => {
-        console.log("Ricevuti millisecondi:", millisecondi);
-        intervallo = millisecondi;
+        intervallo = millisecondi;        
     });
     await aggiornaIntervallo(win);
     win.webContents.on('did-finish-load', () => {
         win.webContents.executeJavaScript(`
             window.addEventListener('message', (event) => {
                 if (event.data.type === 'millisecondi-calcolati') {
-                    console.log("Millisecondi ricevuti:", event.data.millisecondi);
                     if (window.ipc) {
                         window.ipc.send('millisecondi-calcolati', event.data.millisecondi);
                     } else {
@@ -30,7 +28,7 @@ async function avviaRovistamento(win) {
     async function aggiornaIntervallo(win) {
         try {
             intervallo = await rovista(win) + 7000;
-            console.log("Nuovo intervallo impostato:", intervallo);
+            fineIntervallo = new Date(intervallo + Date.now());
         } catch (error) {
             console.error("Errore durante l'aggiornamento dell'intervallo:", error);
             intervallo = 30000;
@@ -100,13 +98,10 @@ async function rovista(win) {
                 win.webContents.once('did-finish-load', resolve);
                 setTimeout(() => reject(new Error("Timeout nel caricamento della pagina overview")), 15000);
             });
-        } else {
-            console.log("Sei già nella pagina corretta:", urlAttuale);
         }
         await calcoloUnitNelVillaggio(win, "91", "villaggio1");
 
         const truppeAttualeNelVillaggio = await calcolaTruppeNelVillaggio("villaggio1");
-        console.log("truppeAttualeNelVillaggio :", truppeAttualeNelVillaggio);
 
         if (truppeAttualeNelVillaggio < 500 && truppeAttualeNelVillaggio > 10) {
             return new Promise((resolve, reject) => {
@@ -125,7 +120,6 @@ async function rovista(win) {
                 }, 15000);
             });
         } else {
-            console.log("Condizioni non soddisfatte, nessun rovistamento avviato.");
             return 60000;
         }
     } catch (error) {
@@ -135,18 +129,14 @@ async function rovista(win) {
 }
 
 async function rovistaPocheTruppe(win) {
-    console.log("Funzione rovistaPocheTruppe chiamata");
     return new Promise((resolve, reject) => {
         ipcMain.once('millisecondi-calcolati', (event, millisecondi) => {
-            console.log("Ricevuti millisecondi:", millisecondi);
             resolve(millisecondi);
         });
 
         win.webContents.executeJavaScript(`
             (async function() {
-                console.log("Funzione rovistaPocheTruppe all'inizio della promise chiamata");
                 const ContenitoreRovistamenti = document.querySelector('#scavenge_screen');
-                console.log("Contenitore Rovistamenti:", ContenitoreRovistamenti);
                 if (!ContenitoreRovistamenti) {
                     console.error("ContenitoreRovistamenti non trovato.");
                     return;
@@ -172,7 +162,6 @@ async function rovistaPocheTruppe(win) {
                     let linkUnit = el.querySelector('.units-entry-all.squad-village-required');
                     if (unitInput) {
                         let tipoUnit = unitInput.getAttribute('name')?.trim();
-                        console.log("Unità trovata:", tipoUnit);
 
                         if (!linkUnit.disabled && linkUnit.offsetParent !== null) {
                             switch (tipoUnit) {
@@ -189,7 +178,6 @@ async function rovistaPocheTruppe(win) {
                                     linkUnit.dispatchEvent(event);
                                     break;
                                 case "knight":
-                                    console.log("Unità knight trovata, ma non viene selezionata");
                                     break;
                                 default:
                                     console.warn("Unità sconosciuta:", tipoUnit);
@@ -228,21 +216,15 @@ async function rovistaPocheTruppe(win) {
                     const rovistamentoInCorso2 = Array.from(rovistamenti).filter(rovistamento => 
                         rovistamento.querySelector('.status-specific .active-view')
                     );
-
-                    console.log("rovistamentoInCorso2:", rovistamentoInCorso2);
                     
                     if (rovistamentoInCorso2.length > 0) {
                         rovistamentoInCorso2.forEach((rovistamento) => {
-                            // const ultimoRovistamento = rovistamentoInCorso2[rovistamentoInCorso2.length - 1];
                             const countdownElement = rovistamento.querySelector('ul li:last-child .return-countdown');
-                            console.log("countdownElement : ", countdownElement);
                             if (countdownElement) {
                                 const timeRovistamento = countdownElement.textContent;
-                                console.log("Tempo rovistamento:", timeRovistamento);
                                 if (timeRovistamento) {
                                     const [ore, minuti, secondi] = timeRovistamento.split(':').map(Number);                                      
                                     const millisecondi = (ore * 3600 + minuti * 60 + secondi) * 1000;
-                                    console.log("Millis calcolati:", millisecondi);
                                     window.postMessage({ type: 'millisecondi-calcolati', millisecondi: millisecondi }, '*');
                                     if (window.ipc) {
                                         window.ipc.send('millisecondi-calcolati', millisecondi);

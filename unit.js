@@ -54,9 +54,7 @@ async function calcoloUnitNelVillaggio(win, mondoId, villaggioId) {
         })();
     `).then(async unitData => {
         if (!unitData) return;
-
         const db = inizializzaDB();
-
         if (db.Mondi && db.Mondi[mondoId] &&
             db.Mondi[mondoId].villaggi && db.Mondi[mondoId].villaggi[villaggioId] &&
             db.Mondi[mondoId].villaggi[villaggioId].Truppe) {
@@ -64,9 +62,7 @@ async function calcoloUnitNelVillaggio(win, mondoId, villaggioId) {
             Object.keys(unitData).forEach(unit => {
                 db.Mondi[mondoId].villaggi[villaggioId].Truppe[unit] = unitData[unit];
             });
-
             scriviDB(db);
-            console.log("Database aggiornato con le nuove unità:", unitData);
         } else {
             console.error("Errore: Struttura del database non trovata per il mondo/villaggio specificato.");
         }
@@ -86,8 +82,11 @@ function calcolaTruppeNelVillaggio(villaggioId) {
             totaleTruppe += villaggio.Truppe[truppa];
         }
     }
-
     return totaleTruppe;
 }
 
-module.exports = { calcoloUnitNelVillaggio, calcolaTruppeNelVillaggio };
+async function reclutamentoUnit(win) {
+    
+}
+
+module.exports = { calcoloUnitNelVillaggio, calcolaTruppeNelVillaggio, reclutamentoUnit };

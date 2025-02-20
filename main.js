@@ -8,7 +8,7 @@ const { UpFree } = require('./instantUpStrutture');
 const path = require('path');
 const { costiStruttura, getCostiStruttura, lista, resouceID } = require('./db');
 const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali, scriviDB } = require('./dbDinamico');
-const { calcoloUnitNelVillaggio, calcolaTruppeNelVillaggio } = require('./unit');
+const { calcoloUnitNelVillaggio, calcolaTruppeNelVillaggio, reclutamentoUnit } = require('./unit');
 
 let winMain, winSide, winRovisto;
 let risorseAttuali = { legno: 'N/A', argilla: 'N/A', ferro: 'N/A' };
@@ -73,7 +73,6 @@ function waitForGameLoad(winMain) {
     return new Promise((resolve, reject) => {
         let attempts = 0;
         let maxAttempts = 20;
-
         let interval = setInterval(async () => {
             try {
                 let gameLoaded = await winMain.webContents.executeJavaScript(`
@@ -223,8 +222,6 @@ ipcMain.handle("get-strutture", async (event) => {
                         upStruttureRisorse(winMain, risorseAttuali, resouceID[primaStruttura.nome]);
                         struttureInCodaFinali = struttureInCodaFinali.slice(1);
                     });
-                } else {
-                    console.log(`Risorse insufficienti per avviare ${nome} livello ${livello}.`);
                 };
             };
         };
@@ -264,13 +261,11 @@ function aggiornaRovistamento(mondoId, villaggioId, rovistamentoId) {
         db.Mondi[mondoId].villaggi[villaggioId].Rovistamento.hasOwnProperty(rovistamentoId)) {
 
         if (db.Mondi[mondoId].villaggi[villaggioId].Rovistamento[rovistamentoId] === true) {
-            console.log(`"${rovistamentoId}" è già stato aggiornato, nessuna modifica necessaria.`);
             return;
         }
         
         db.Mondi[mondoId].villaggi[villaggioId].Rovistamento[rovistamentoId] = true;
         scriviDB(db);
-        console.log(`Il valore di "${rovistamentoId}" è stato aggiornato a true!`);
     } else {
         console.error("Errore: Dati non trovati nel database.");
     }
@@ -278,10 +273,8 @@ function aggiornaRovistamento(mondoId, villaggioId, rovistamentoId) {
 
 function verificaERichiamaRovistamento(nomeRovistamento, indice, requisiti, livelloMinimo, struttureInCodaFinali) {
     if (risorseAttuali.legno > requisiti.legno && risorseAttuali.argilla > requisiti.argilla && risorseAttuali.ferro > requisiti.ferro) {
-        console.log("nomeRovistamento :" + nomeRovistamento + " , indice :" + indice + " , requisiti :" + requisiti + " , livelloMinimo :" + livelloMinimo);
         
         if (rovistamentiEseguiti[nomeRovistamento]) {
-            console.log(`"${nomeRovistamento}" è già stato eseguito, non richiamare di nuovo.`);
             return;
         }
 
@@ -289,14 +282,11 @@ function verificaERichiamaRovistamento(nomeRovistamento, indice, requisiti, live
         let upRovistamento = struttureInCodaFinali.filter(el => el.nome === "Taglialegna").every(el => el.livello >= livelloMinimo);
 
         if (!upRovistamento) {
-            console.log("Sono qui");
             rovistamentiEseguiti[nomeRovistamento] = true;
             setTimeout(() => {
                 SbloccoRovistamento(winRovisto, indice, nomeRovistamento);
                 aggiornaRovistamento("91", "villaggio1", nomeRovistamento);
             }, 10000);
-        } else {
-            console.log("Le strutture sono pronte, ma il rovistamento è già stato eseguito.");
         }
     }
 }

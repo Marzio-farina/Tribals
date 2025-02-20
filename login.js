@@ -21,8 +21,6 @@ function login(winMain) {
                         setTimeout(() => {
                             loginButton.click();
                         }, 3000);
-                    } else {
-                        console.log("Gli elementi di login non sono stati trovati.");
                     }
                 })();
             `).then(() => resolve()).catch(err => {
@@ -30,7 +28,6 @@ function login(winMain) {
                 reject(err);
             });
         });
-
         winMain.webContents.loadURL('https://www.tribals.it/');
     });
 }
@@ -61,13 +58,11 @@ function loginMondo91(winMain) {
                     attempts++;
                     if (attempts >= maxAttempts) {
                         clearInterval(interval);
-                        console.log("Mondo 91 non trovato.");
                         reject('Mondo 91 non trovato');
                     }
                 }
             } catch (error) {
                 clearInterval(interval);
-                console.log("Errore durante la ricerca di Mondo 91:", error);
                 reject(error);
             }
         }, 1000);

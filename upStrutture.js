@@ -1,7 +1,4 @@
 function upStruttureRisorse(win, { legno, argilla, ferro }, resourceId) {
-    console.log('Risorse disponibili:', legno, argilla, ferro);
-    console.log('Eseguo aggiornamento per:', resourceId);
-
     return win.webContents.executeJavaScript(`
         (function() {
             let legnoNecessario = document.querySelector('#${resourceId} td.cost_wood')?.getAttribute('data-cost') || 'N/A';
@@ -11,16 +8,11 @@ function upStruttureRisorse(win, { legno, argilla, ferro }, resourceId) {
             return { legnoNecessario, argillaNecessaria, ferroNecessario };
         })();
     `).then((resourceNecessario) => {
-        console.log(`Legno necessario: ${resourceNecessario.legnoNecessario}`);
-        console.log(`Argilla necessaria: ${resourceNecessario.argillaNecessaria}`);
-        console.log(`Ferro necessario: ${resourceNecessario.ferroNecessario}`);
-
         if (
             parseInt(legno) >= parseInt(resourceNecessario.legnoNecessario) &&
             parseInt(argilla) >= parseInt(resourceNecessario.argillaNecessaria) &&
             parseInt(ferro) >= parseInt(resourceNecessario.ferroNecessario)
         ) {
-            console.log('Abbastanza risorse per l\'upgrade!');
             return win.webContents.executeJavaScript(`
                 (function() {
                     let link = document.querySelector('#${resourceId} td.build_options a.btn.btn-build.current-quest.quest-arrow-target');
