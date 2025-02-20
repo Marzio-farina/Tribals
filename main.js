@@ -3,7 +3,7 @@ const createWindows = require('./windows');
 const { login, loginMondo91 } = require('./login');
 const { risorse } = require('./risorse');
 const { upStruttureRisorse } = require('./upStrutture');
-const { SbloccoRovistamento, rovista } = require('./rovistamenti');
+const { SbloccoRovistamento, rovista, avviaRovistamento } = require('./rovistamenti');
 const { UpFree } = require('./instantUpStrutture');
 const path = require('path');
 const { costiStruttura, getCostiStruttura, lista, resouceID } = require('./db');
@@ -37,7 +37,7 @@ function initialize() {
                 setTimeout(() => {
                     winRovisto.loadURL('https://it91.tribals.it/game.php?village=4477&screen=place&mode=scavenge');
                 }, 15000);
-                setInterval(() => rovista(winRovisto), 30000);
+                await avviaRovistamento(winRovisto);
             } catch (error) {
                 console.error("Errore durante il flusso:", error);
             }            
