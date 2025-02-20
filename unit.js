@@ -9,7 +9,15 @@ async function calcoloUnitNelVillaggio(win, mondoId, villaggioId) {
                 return {};
             }
             const sottoContenitoreUnit = contenitoreUnit.querySelectorAll('tbody .all_unit');
-            let unitData = {};
+            let unitData = {
+                "Lanciere": 0,
+                "Spadaccino": 0,
+                "Esploratore": 0,
+                "Guerriero con ascia": 0,
+                "Cavalleria leggera": 0,
+                "Cavalleria pesante": 0,
+                "Paladino": 0
+            };
 
             sottoContenitoreUnit.forEach(el => {
                 let numeroUnit = parseInt(el.querySelector('td strong')?.textContent?.trim());

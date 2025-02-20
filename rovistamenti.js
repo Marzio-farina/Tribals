@@ -1,5 +1,5 @@
 const { inizializzaDB, aggiungiMondo, leggiMondo, datiIniziali,aggiornaRovistamentoValore } = require('./dbDinamico');
-const { calcolaTruppeNelVillaggio } = require('./unit');
+const { calcolaTruppeNelVillaggio, calcoloUnitNelVillaggio } = require('./unit');
 const { ipcRenderer, ipcMain } = require('electron');
 
 let intervallo = 30000;
@@ -29,7 +29,7 @@ async function avviaRovistamento(win) {
 
     async function aggiornaIntervallo(win) {
         try {
-            intervallo = await rovista(win) + 3000;
+            intervallo = await rovista(win) + 7000;
             console.log("Nuovo intervallo impostato:", intervallo);
         } catch (error) {
             console.error("Errore durante l'aggiornamento dell'intervallo:", error);
@@ -89,15 +89,47 @@ function SbloccoRovistamento (win, lv, nomeLv){
     }, 3000);
 }
 
-async function rovista (win){
-    const truppeAttualeNelVillaggio = await calcolaTruppeNelVillaggio("villaggio1");
-    // win.loadURL('https://it91.tribals.it/game.php?village=4477&screen=place&mode=scavenge');
-    console.log("truppeAttualeNelVillaggio :", truppeAttualeNelVillaggio);
+async function rovista(win) {
+    try {
+        const urlOverview = 'https://it91.tribals.it/game.php?screen=overview&intro';
+        const urlAttuale = await win.webContents.executeJavaScript("window.location.href");
 
-    if (truppeAttualeNelVillaggio < 500 && truppeAttualeNelVillaggio > 10) {
-        console.log("Funzione rovista chiamata");
-        return await rovistaPocheTruppe(win);
-    } else {
+        if (!urlAttuale.includes("screen=overview&intro")) {
+            await new Promise((resolve, reject) => {
+                win.loadURL(urlOverview);
+                win.webContents.once('did-finish-load', resolve);
+                setTimeout(() => reject(new Error("Timeout nel caricamento della pagina overview")), 15000);
+            });
+        } else {
+            console.log("Sei già nella pagina corretta:", urlAttuale);
+        }
+        await calcoloUnitNelVillaggio(win, "91", "villaggio1");
+
+        const truppeAttualeNelVillaggio = await calcolaTruppeNelVillaggio("villaggio1");
+        console.log("truppeAttualeNelVillaggio :", truppeAttualeNelVillaggio);
+
+        if (truppeAttualeNelVillaggio < 500 && truppeAttualeNelVillaggio > 10) {
+            return new Promise((resolve, reject) => {
+                const url = 'https://it91.tribals.it/game.php?village=4477&screen=place&mode=scavenge';
+                win.loadURL(url);
+                win.webContents.once('did-finish-load', async () => {
+                    try {
+                        resolve(await rovistaPocheTruppe(win));
+                    } catch (error) {
+                        console.error("Errore durante il rovistamento:", error);
+                        reject(error);
+                    }
+                });
+                setTimeout(() => {
+                    reject(new Error("Timeout nel caricamento della pagina"));
+                }, 15000);
+            });
+        } else {
+            console.log("Condizioni non soddisfatte, nessun rovistamento avviato.");
+            return 60000;
+        }
+    } catch (error) {
+        console.error("Errore nel calcolo delle truppe:", error);
         return 30000;
     }
 }
