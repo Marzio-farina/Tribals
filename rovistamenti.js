@@ -196,6 +196,8 @@ async function rovistaPocheTruppe(win) {
                     const rovistamentoInCorso2 = Array.from(rovistamenti).filter(rovistamento => 
                         rovistamento.querySelector('.status-specific .active-view')
                     );
+
+                    console.log("rovistamentoInCorso2:", rovistamentoInCorso2);
                     
                     if (rovistamentoInCorso2.length > 0) {
                         rovistamentoInCorso2.forEach((rovistamento) => {
@@ -223,7 +225,7 @@ async function rovistaPocheTruppe(win) {
                     } else {
                         console.warn("Rovistamento in corso non trovato.");
                     }
-                }, 2000);
+                }, 6000);
             })();
         `).catch(error => {
             console.error("Errore nell'esecuzione del JavaScript:", error);
