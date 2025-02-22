@@ -86,7 +86,7 @@ function calcolaTruppeNelVillaggio(villaggioId) {
 }
 
 async function reclutamentoUnit(win) {
-    
+    console.log("prova");    
 }
 
 module.exports = { calcoloUnitNelVillaggio, calcolaTruppeNelVillaggio, reclutamentoUnit };

@@ -25,7 +25,6 @@ function createWindows() {
         console.error(`Errore nel caricamento della finestra principale: ${errorDescription} (Codice errore: ${errorCode})`);
         
         setTimeout(() => {
-            console.log("Ricaricamento della finestra...");
             winMain.reload();
         }, 2000);
     });

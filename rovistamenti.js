@@ -8,7 +8,7 @@ let fineIntervallo;
 async function avviaRovistamento(win) {
     ipcMain.removeAllListeners('millisecondi-calcolati');
     ipcMain.on('millisecondi-calcolati', (event, millisecondi) => {
-        intervallo = millisecondi;        
+        intervallo = millisecondi;
     });
     await aggiornaIntervallo(win);
     win.webContents.on('did-finish-load', () => {
@@ -29,6 +29,13 @@ async function avviaRovistamento(win) {
         try {
             intervallo = await rovista(win) + 7000;
             fineIntervallo = new Date(intervallo + Date.now());
+
+            const url = 'https://it91.tribals.it/game.php?screen=overview&intro';
+            await new Promise((resolve, reject) => {
+                win.loadURL(url);
+                win.webContents.once('did-finish-load', resolve);
+                setTimeout(() => reject(new Error("Timeout nel caricamento della pagina overview")), 15000);
+            });
         } catch (error) {
             console.error("Errore durante l'aggiornamento dell'intervallo:", error);
             intervallo = 30000;
