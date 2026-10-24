@@ -1,2 +1,6 @@
 node_modules/
 database.json
+# Generated Graphify artifacts
+/graphify-out/
+/.graphify-venv/
+/.graphify/__pycache__/
